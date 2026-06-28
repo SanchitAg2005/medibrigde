@@ -280,6 +280,18 @@ The database contains pre-configured credentials for quick evaluation:
 
 *To access Django's native administrative panel directly: `http://localhost:8000/admin/` (use `admin@medibridge.com`).*
 
+### Creating Custom Administrator Credentials
+If you prefer to define custom administrator credentials instead of using the pre-seeded default accounts:
+* **Docker Environment**:
+  ```bash
+  docker compose exec web python hms/manage.py createsuperuser
+  ```
+* **Local SQLite Environment**:
+  ```bash
+  python hms/manage.py createsuperuser
+  ```
+This interactive command prompts for a custom username, email address, and secure password to grant full system administrative access.
+
 ---
 
 ## 🛠️ Assignment Requirements Mapping
