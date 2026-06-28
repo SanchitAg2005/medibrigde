@@ -13,13 +13,24 @@ def generate_slots(doctor, start_date, end_date, actor=None, ip_address=None):
     """
     Automatically generates availability slots for a doctor in a date range.
     """
+    # Purge existing AVAILABLE slots within the date range to prevent timezone/schedule mismatch duplicates
+    tz = timezone.get_current_timezone()
+    start_dt_bound = timezone.make_aware(datetime.datetime.combine(start_date, datetime.time.min), tz)
+    end_dt_bound = timezone.make_aware(datetime.datetime.combine(end_date, datetime.time.max), tz)
+    AvailabilitySlot.objects.filter(
+        doctor=doctor,
+        status='AVAILABLE',
+        start_datetime__gte=start_dt_bound,
+        start_datetime__lte=end_dt_bound
+    ).delete()
+
     slots_created = 0
     current_date = start_date
     delta = datetime.timedelta(days=1)
 
     while current_date <= end_date:
         # 1. Skip past dates
-        if current_date < timezone.now().date():
+        if current_date < timezone.localdate():
             current_date += delta
             continue
 

@@ -19,7 +19,7 @@ def dashboard_view(request):
         messages.error(request, "Doctor profile not configured. Please contact administrator.")
         return redirect('dashboard')
 
-    today = timezone.now().date()
+    today = timezone.localdate()
     
     # Scheduled appointments for today (in chronological order)
     today_bookings = Booking.objects.filter(
@@ -134,7 +134,7 @@ def configure_working_hours_view(request):
                         WorkingHours.objects.filter(doctor=doctor_profile, day_of_week=day_num).delete()
                 
                 # Auto generate slots for the next 14 days
-                today = timezone.now().date()
+                today = timezone.localdate()
                 end_date = today + datetime.timedelta(days=14)
                 slots_created = generate_slots(doctor_profile, today, end_date, actor=request.user)
                 
