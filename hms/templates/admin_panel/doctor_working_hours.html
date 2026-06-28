@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Working Hours Dr. {{ doctor.get_full_name }} - Admin Console{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12 w-full space-y-6">
+    <!-- Back Button -->
+    <a href="{% url 'admin_panel:doctor_detail' doctor.pk %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-emerald-600 transition">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg> Back to Profile
+    </a>
+
+    <div class="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm space-y-6">
+        <div class="space-y-1">
+            <h2 class="text-2xl font-bold font-outfit text-slate-900">Configure Doctor Working Hours</h2>
+            <p class="text-xs text-slate-500 font-light">Set weekly schedules, timeframes, appointment durations, and buffers for Dr. {{ doctor.get_full_name }}.</p>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            
+            <div class="divide-y divide-zinc-200">
+                {% for item in days_data %}
+                    {% with wh=item.wh %}
+                    <div class="py-4 first:pt-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+                        <div class="w-28 flex items-center gap-2 shrink-0">
+                            <input type="checkbox" name="active_{{ item.day_num }}" id="active_{{ item.day_num }}" class="rounded text-emerald-600 focus:ring-emerald-500" {% if wh %}checked{% endif %}>
+                            <label for="active_{{ item.day_num }}" class="font-bold text-slate-800">{{ item.day_name }}</label>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-4 w-full">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-500 font-light">Start Time:</span>
+                                <input type="time" name="start_{{ item.day_num }}" class="px-2 py-1 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800" value="{% if wh %}{{ wh.start_time|time:'H:i' }}{% else %}09:00{% endif %}">
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-500 font-light">End Time:</span>
+                                <input type="time" name="end_{{ item.day_num }}" class="px-2 py-1 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800" value="{% if wh %}{{ wh.end_time|time:'H:i' }}{% else %}17:00{% endif %}">
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-500 font-light">Duration (mins):</span>
+                                <input type="number" name="duration_{{ item.day_num }}" min="5" max="180" class="w-16 px-2 py-1 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800" value="{% if wh %}{{ wh.slot_duration_minutes }}{% else %}30{% endif %}">
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-500 font-light">Buffer (mins):</span>
+                                <input type="number" name="buffer_{{ item.day_num }}" min="0" max="60" class="w-14 px-2 py-1 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800" value="{% if wh %}{{ wh.buffer_time_minutes }}{% else %}0{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+
+            <!-- Regenerate checkbox -->
+            <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
+                <input type="checkbox" name="regenerate_slots" id="regenerate_slots" checked class="mt-1 rounded text-emerald-600 focus:ring-emerald-500">
+                <div>
+                    <label for="regenerate_slots" class="font-bold text-xs text-emerald-900 block">Regenerate Availability Slots Automatically</label>
+                    <span class="text-[10px] text-emerald-700 font-light">Clears all upcoming unbooked AVAILABLE slots for this doctor and runs the slot generation engine for the next 14 days. Booked appointments are not affected.</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <a href="{% url 'admin_panel:doctor_detail' doctor.pk %}" class="flex-1 py-2.5 text-center text-xs font-semibold text-slate-700 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition">Cancel</a>
+                <button type="submit" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-xl transition">Save Working Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

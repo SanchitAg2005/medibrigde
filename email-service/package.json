@@ -1,0 +1,13 @@
+{
+  "name": "hms-email-service",
+  "version": "1.0.0",
+  "description": "Hospital Management System Email Notification Service",
+  "main": "handler.py",
+  "scripts": {
+    "start": "serverless offline --host 0.0.0.0"
+  },
+  "dependencies": {
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.0"
+  }
+}

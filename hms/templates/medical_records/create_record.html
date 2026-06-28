@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Write EMR Consultation Record - {{ hospital_config.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 flex-grow">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs text-slate-500">
+        <a href="{% url 'doctors:dashboard' %}" class="hover:text-emerald-600 transition font-medium">Doctor Dashboard</a>
+        <span>&bull;</span>
+        <span class="text-slate-600 font-semibold">Write EMR Notes</span>
+    </div>
+
+    <!-- Header -->
+    <div class="border-b border-zinc-200 pb-6">
+        <span class="text-slate-400 font-mono text-xs uppercase tracking-wider block">Booking Reference: {{ booking.reference_id }}</span>
+        <h1 class="text-3xl font-extrabold font-outfit text-slate-900 mt-1">Consultation EMR Record</h1>
+        <p class="text-sm text-slate-500">Patient: <strong class="text-slate-800">{{ booking.patient.get_full_name|default:booking.patient.username }}</strong></p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Left: Patient and Slot Summary Card -->
+        <div class="space-y-6">
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider font-outfit border-b border-zinc-200 pb-2">Consultation Summary</h3>
+                <div class="space-y-3 text-xs text-slate-600">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Patient Name:</span>
+                        <span class="text-right">{{ booking.patient.get_full_name|default:booking.patient.username }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Email:</span>
+                        <span class="text-right truncate max-w-[120px]">{{ booking.patient.email }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Date:</span>
+                        <span>{{ booking.slot.start_datetime|date:"Y-m-d" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Time:</span>
+                        <span>{{ booking.slot.start_datetime|date:"H:i" }} - {{ booking.slot.end_datetime|date:"H:i" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Status:</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            In Consultation
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Form Area -->
+        <div class="md:col-span-2 space-y-6">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl">
+                <form method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-4">
+                        <!-- Diagnosis -->
+                        <div>
+                            <label for="diagnosis" class="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Diagnosis <span class="text-rose-500">*</span></label>
+                            <textarea id="diagnosis" name="diagnosis" rows="2" placeholder="e.g. Essential Hypertension, Acute Tonsillitis" class="w-full text-xs glass-input rounded-lg p-3 focus:outline-none" required></textarea>
+                        </div>
+                        
+                        <!-- Symptoms -->
+                        <div>
+                            <label for="symptoms" class="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Symptoms <span class="text-rose-500">*</span></label>
+                            <textarea id="symptoms" name="symptoms" rows="2" placeholder="e.g. Systolic blood pressure 152/94, mild headaches" class="w-full text-xs glass-input rounded-lg p-3 focus:outline-none" required></textarea>
+                        </div>
+
+                        <!-- Clinical Notes -->
+                        <div>
+                            <label for="consultation_notes" class="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Consultation notes</label>
+                            <textarea id="consultation_notes" name="consultation_notes" rows="4" placeholder="Patient advised to begin low-sodium diet and log daily BP..." class="w-full text-xs glass-input rounded-lg p-3 focus:outline-none"></textarea>
+                        </div>
+
+                        <!-- Follow Up Date -->
+                        <div>
+                            <label for="follow_up_date" class="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Follow up date</label>
+                            <input type="date" id="follow_up_date" name="follow_up_date" class="w-full text-xs glass-input rounded-lg p-3 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Submit / Cancel -->
+                    <div class="flex items-center justify-end gap-3 border-t border-zinc-200 pt-6">
+                        <a href="{% url 'doctors:dashboard' %}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-zinc-200 text-xs font-semibold rounded-lg transition">
+                            Cancel
+                        </a>
+                        <button type="submit" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-md shadow-emerald-600/25">
+                            Submit Consultation Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

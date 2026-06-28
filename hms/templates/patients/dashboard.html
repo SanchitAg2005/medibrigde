@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Dashboard - {{ hospital_config.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 flex-grow">
+    <!-- Header Summary -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-6">
+        <div>
+            <h1 class="text-3xl font-extrabold font-outfit text-slate-900">Patient Dashboard</h1>
+            <p class="text-sm text-slate-500">Welcome back, {{ user.get_full_name|default:user.username }}</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a href="{% url 'patients:book_appointment' %}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md shadow-emerald-600/25 text-xs flex items-center gap-2 glow-button font-outfit">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Book New Appointment
+            </a>
+            
+            <!-- Google Calendar Card -->
+            <div class="glass-card px-4 py-2 rounded-xl flex items-center gap-3 text-xs">
+                <div class="w-2.5 h-2.5 rounded-full {% if has_calendar_connected %}bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse{% else %}bg-amber-500{% endif %}"></div>
+                <div>
+                    <span class="text-slate-500 block font-medium">Google Calendar Sync</span>
+                    {% if has_calendar_connected %}
+                        <span class="text-emerald-600 font-semibold">Status: Synced</span>
+                    {% else %}
+                        <a href="{% url 'calendar_sync:connect' %}" class="text-emerald-600 font-semibold hover:underline">Link Account</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not has_calendar_connected %}
+    <div class="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-xs flex justify-between items-center gap-3">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Google Calendar is not connected. Please connect your account to automatically synchronize appointments.</span>
+        </div>
+        <a href="{% url 'calendar_sync:connect' %}" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition text-center text-xs">Link Account</a>
+    </div>
+    {% endif %}
+
+    <!-- Quick Statistics Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Completed Visits</span>
+                <strong class="text-xl font-extrabold text-slate-900 font-outfit">{{ completed_count }}</strong>
+            </div>
+        </div>
+        
+        <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Upcoming Bookings</span>
+                <strong class="text-xl font-extrabold text-slate-900 font-outfit">{{ upcoming_count }}</strong>
+            </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Clinical Reports</span>
+                <strong class="text-xl font-extrabold text-slate-900 font-outfit">{{ reports_count }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid System -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left 2 Columns: Appointments & Reports -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Section 1: Upcoming Appointments Timeline -->
+            <div class="space-y-4">
+                <h2 class="text-lg font-bold font-outfit text-slate-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    My Appointment Timeline
+                </h2>
+                
+                {% if upcoming_appointments %}
+                    <div class="grid gap-4">
+                        {% for appt in upcoming_appointments %}
+                            <div class="glass-card p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-emerald-500/20 transition">
+                                <div class="space-y-1">
+                                    <span class="text-slate-400 font-mono text-[10px] uppercase tracking-wider block">Reference ID: {{ appt.reference_id }}</span>
+                                    <h3 class="text-base font-bold text-slate-900 font-outfit">Dr. {{ appt.slot.doctor.user.get_full_name }}</h3>
+                                    <p class="text-xs text-emerald-700">{{ appt.slot.doctor.specialization }} &bull; {{ appt.slot.doctor.hospital_name }}</p>
+                                    <div class="flex items-center gap-2 pt-1 text-slate-500 text-xs font-medium">
+                                        <span>{{ appt.slot.start_datetime|date:"Y-m-d" }}</span>
+                                        <span>&bull;</span>
+                                        <span>{{ appt.slot.start_datetime|date:"H:i" }} - {{ appt.slot.end_datetime|date:"H:i" }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        Confirmed
+                                    </span>
+                                    <button onclick="openAppointmentDrawer('{{ appt.id }}')" class="px-3.5 py-1.5 rounded-lg bg-slate-100 border border-zinc-200 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition">
+                                        Details
+                                    </button>
+                                    <a href="{% url 'appointments:cancel_booking' appt.id %}" class="px-3.5 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="glass-card p-6 rounded-2xl text-center text-xs text-slate-500 space-y-4 flex flex-col items-center justify-center">
+                        <p>No upcoming appointments scheduled.</p>
+                        <a href="{% url 'patients:book_appointment' %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">Book New Appointment</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Section 2: Medical Reports Hub -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold font-outfit text-slate-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Medical Reports Hub
+                    </h2>
+                    <button onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-md shadow-emerald-600/20">
+                        Upload Report
+                    </button>
+                </div>
+                
+                {% if medical_reports %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {% for report in medical_reports %}
+                            <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-3 hover:border-emerald-500/20 transition">
+                                <div class="space-y-1 overflow-hidden">
+                                    <h4 class="text-sm font-bold text-slate-900 truncate font-outfit">{{ report.title }}</h4>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 uppercase border border-zinc-200">{{ report.get_report_type_display }}</span>
+                                    <p class="text-[10px] text-slate-500">Uploaded: {{ report.uploaded_at|date:"Y-m-d" }}</p>
+                                </div>
+                                <a href="{{ report.file.url }}" download class="p-2 rounded-lg bg-slate-100 border border-zinc-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="glass-card p-6 rounded-2xl text-center text-xs text-slate-500">
+                        No medical reports uploaded yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right 1 Column: Consultation History & Reviews -->
+        <div class="space-y-4">
+            <h2 class="text-lg font-bold font-outfit text-slate-900 flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                History &amp; Reviews
+            </h2>
+            
+            {% if past_appointments %}
+                <div class="grid gap-4">
+                    {% for appt in past_appointments %}
+                        <div class="glass-card p-5 rounded-2xl space-y-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div>
+                                    <span class="text-slate-400 font-mono text-[9px] uppercase tracking-wider block">Reference ID: {{ appt.reference_id }}</span>
+                                    <h3 class="text-sm font-bold text-slate-900 font-outfit font-medium">Dr. {{ appt.slot.doctor.user.get_full_name }}</h3>
+                                    <p class="text-xs text-slate-500">{{ appt.slot.doctor.specialization }} &bull; {{ appt.slot.start_datetime|date:"Y-m-d" }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {% if appt.slot.status == 'COMPLETED' %}bg-blue-100 text-blue-800 border border-blue-200{% elif appt.slot.status == 'CANCELLED' %}bg-rose-100 text-rose-800 border border-rose-200{% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
+                                        {{ appt.slot.get_status_display }}
+                                    </span>
+                                    <button onclick="openAppointmentDrawer('{{ appt.id }}')" class="px-2.5 py-1 rounded-lg bg-slate-100 border border-zinc-200 text-[10px] font-bold text-slate-600 hover:bg-slate-200 transition">
+                                        Logs
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Review Section -->
+                            {% if appt.slot.status == 'COMPLETED' %}
+                                {% if appt.review %}
+                                    <div class="bg-slate-50 p-3 rounded-lg border border-zinc-200 text-xs text-slate-600 space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-slate-700 font-bold">Review Submitted</span>
+                                            <span class="text-amber-500 font-semibold">
+                                                {% if appt.review.rating == 5 %}⭐⭐⭐⭐⭐{% elif appt.review.rating == 4 %}⭐⭐⭐⭐{% elif appt.review.rating == 3 %}⭐⭐⭐{% elif appt.review.rating == 2 %}⭐⭐{% else %}⭐{% endif %}
+                                                {{ appt.review.rating }}.0
+                                            </span>
+                                        </div>
+                                        <p class="italic">"{{ appt.review.comment }}"</p>
+                                    </div>
+                                {% else %}
+                                    <button onclick="openReviewModal('{{ appt.id }}', 'Dr. {{ appt.slot.doctor.user.get_full_name|escapejs }}')" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition">
+                                        Leave Review
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="glass-card p-6 rounded-2xl text-center text-xs text-slate-500">
+                    No consultation history found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Upload Report Modal -->
+<div id="upload-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden px-4">
+    <div class="max-w-md w-full bg-white border border-zinc-200 shadow-xl p-6 rounded-2xl space-y-6">
+        <div class="flex items-center justify-between border-b border-zinc-200 pb-4">
+            <h3 class="text-lg font-bold font-outfit text-slate-900">Upload Medical Report</h3>
+            <button onclick="document.getElementById('upload-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <form action="{% url 'medical_records:upload_report' %}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Report Title</label>
+                <input type="text" name="title" placeholder="e.g. Lipids Blood Panel" class="w-full text-xs glass-input rounded-lg p-2.5 focus:outline-none" required>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Report Type</label>
+                <select name="report_type" class="w-full text-xs glass-input rounded-lg p-2.5 focus:outline-none">
+                    <option value="BLOOD_TEST">Blood Test</option>
+                    <option value="MRI">MRI Scan</option>
+                    <option value="CT_SCAN">CT Scan</option>
+                    <option value="X_RAY">X-Ray Image</option>
+                    <option value="OTHER">Other Documents</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Select PDF/Image File</label>
+                <input type="file" name="file" class="w-full text-xs glass-input rounded-lg p-2 focus:outline-none" required>
+            </div>
+            
+            <button type="submit" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition shadow-md shadow-emerald-600/25">
+                Upload Document
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Leave Review Modal -->
+<div id="review-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden px-4">
+    <div class="max-w-md w-full bg-white border border-zinc-200 shadow-xl p-6 rounded-2xl space-y-6">
+        <div class="flex items-center justify-between border-b border-zinc-200 pb-4">
+            <div>
+                <h3 class="text-lg font-bold font-outfit text-slate-900">Submit Consultation Review</h3>
+                <p id="review-modal-doctor" class="text-xs text-slate-500 mt-0.5">Doctor Name</p>
+            </div>
+            <button onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-700">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <form id="review-form" action="" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Rating</label>
+                <select name="rating" class="w-full text-xs glass-input rounded-lg p-2.5 focus:outline-none" required>
+                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                    <option value="3">⭐⭐⭐ 3 Stars</option>
+                    <option value="2">⭐⭐ 2 Stars</option>
+                    <option value="1">⭐ 1 Star</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Review Comment (Optional)</label>
+                <textarea name="comment" rows="3" placeholder="Describe your consultation experience..." class="w-full text-xs glass-input rounded-lg p-2.5 focus:outline-none"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition shadow-md shadow-emerald-600/25">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openReviewModal(bookingId, doctorName) {
+        const form = document.getElementById('review-form');
+        form.action = `/doctors/submit-review/${bookingId}/`;
+        document.getElementById('review-modal-doctor').innerText = doctorName;
+        document.getElementById('review-modal').classList.remove('hidden');
+    }
+    
+    function closeReviewModal() {
+        document.getElementById('review-modal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

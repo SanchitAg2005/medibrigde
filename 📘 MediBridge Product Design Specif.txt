@@ -1,0 +1,4105 @@
+📘 MediBridge Product Design Specification (PDS) v1.0
+Section 1 — Product Vision & UX Principles
+1. Product Overview
+Product Name
+
+MediBridge
+
+Tagline
+
+Connecting Care. Simplifying Healthcare.
+
+Product Type
+
+A modern Hospital Appointment & Electronic Medical Record Management System designed for hospitals, clinics, doctors, administrators, and patients.
+
+Unlike traditional hospital software that focuses only on operations, MediBridge prioritizes clarity, speed, trust, and usability while remaining professional enough for real healthcare environments.
+
+2. Product Goals
+
+MediBridge should make every user feel that:
+
+Booking an appointment is effortless.
+Managing a hospital is organized.
+Doctors have everything needed before consultation.
+Patients always know what is happening.
+The system is trustworthy enough to handle medical information.
+
+The experience should reduce confusion instead of adding it.
+
+3. Core Design Philosophy
+
+Every design decision must satisfy these principles.
+
+Principle 1 — Clarity over Decoration
+
+Information is always more important than visual effects.
+
+The interface should never hide important actions behind excessive animations or decorative elements.
+
+A hospital application must feel reliable before it feels beautiful.
+
+Principle 2 — Speed
+
+Users should complete their tasks with as few clicks as possible.
+
+Examples:
+
+Book appointment within 3 clicks.
+Doctor opens today's schedule immediately after login.
+Admin sees pending doctor approvals without searching.
+Principle 3 — Consistency
+
+Every page should feel like it belongs to the same product.
+
+Buttons, spacing, typography, colors, icons, and interaction patterns must remain consistent throughout the application.
+
+Principle 4 — Professional Simplicity
+
+The interface should resemble modern SaaS applications rather than old government portals.
+
+Inspiration comes from:
+
+Apple Health (clarity)
+Stripe Dashboard (organization)
+Notion (clean layout)
+Google Calendar (scheduling)
+Linear (efficient workflows)
+Principle 5 — Accessibility
+
+Every feature must remain usable for:
+
+New users
+Older users
+Non-technical users
+Keyboard users
+Mobile users
+
+Accessibility is a core requirement, not an afterthought.
+
+4. Brand Personality
+
+If MediBridge were a person, it would be:
+
+Calm
+Intelligent
+Professional
+Helpful
+Organized
+Trustworthy
+Modern
+
+It should never appear:
+
+Overly playful
+Futuristic to the point of distraction
+Corporate and cold
+Visually noisy
+5. Target Users
+Patients
+
+Goals:
+
+Find doctors quickly.
+Book appointments easily.
+View appointment history.
+Access prescriptions and medical reports.
+Receive reminders.
+
+Pain points:
+
+Confusing hospital systems.
+Long booking processes.
+Losing prescriptions.
+Not knowing appointment status.
+Doctors
+
+Goals:
+
+Manage schedules.
+Review patient history.
+Write prescriptions.
+Complete consultations efficiently.
+Keep calendars synchronized.
+
+Pain points:
+
+Time wasted on administrative tasks.
+Missing patient information.
+Double bookings.
+Disorganized schedules.
+Administrators
+
+Goals:
+
+Manage doctors.
+Approve registrations.
+Monitor appointments.
+Maintain operational oversight.
+Resolve scheduling issues.
+
+Pain points:
+
+Managing large volumes of appointments.
+Tracking doctor verification.
+Maintaining organized schedules.
+6. Product Tone
+
+All interface text should sound:
+
+Professional
+
+Helpful
+
+Clear
+
+Respectful
+
+Avoid robotic or overly technical wording.
+
+For example:
+
+Instead of:
+
+Invalid Request
+
+Use:
+
+This appointment is no longer available.
+
+Instead of:
+
+Authentication Failed
+
+Use:
+
+We couldn't sign you in. Please check your email and password.
+
+7. Visual Personality
+
+The application should communicate:
+
+Precision
+
+Reliability
+
+Cleanliness
+
+Healthcare
+
+Trust
+
+Everything should feel deliberate.
+
+Whitespace is preferred over clutter.
+
+8. Emotional Journey
+
+When a patient opens MediBridge:
+
+They should feel:
+
+"I know exactly what to do."
+
+When a doctor logs in:
+
+"I have everything I need for today's consultations."
+
+When an administrator logs in:
+
+"I can manage the hospital efficiently."
+
+9. Success Metrics
+
+A successful design allows users to:
+
+Find a doctor within 30 seconds.
+Book an appointment in under one minute.
+Access medical history without searching.
+Identify today's appointments immediately.
+Complete routine tasks without assistance.
+10. Product Identity Statement
+
+MediBridge is a modern healthcare platform that combines the reliability of enterprise hospital software with the usability of contemporary SaaS products. Every interaction should reduce complexity, build trust, and help users focus on healthcare rather than software.
+
+
+📘 MediBridge Product Design Specification v1.0
+Section 2 — Information Architecture
+Application Structure
+
+There are four user types.
+
+Guest
+
+↓
+
+Patient
+
+↓
+
+Doctor
+
+↓
+
+Admin
+
+Each has a completely different experience.
+
+1. Guest Experience (Public)
+
+These pages are accessible without login.
+
+/
+Landing Page
+
+/about
+About MediBridge
+
+/features
+Features
+
+/contact
+Contact
+
+/login
+Login
+
+/register
+Register
+
+/forgot-password
+Forgot Password
+
+/privacy
+
+/terms
+Landing Page Sections
+
+This is the first impression.
+
+Sections:
+
+Hero
+Features
+How it Works
+Statistics
+Why Choose MediBridge
+Technology Stack
+FAQ
+Footer
+2. Authentication Flow
+Login
+
+↓
+
+Role Detection
+
+↓
+
+Patient Dashboard
+
+OR
+
+Doctor Dashboard
+
+OR
+
+Admin Dashboard
+
+Users never manually choose a dashboard.
+
+The backend decides based on role.
+
+Registration
+
+Patient
+
+Register
+
+↓
+
+Email Verification
+
+↓
+
+Account Ready
+
+Doctor
+
+Register
+
+↓
+
+Upload Documents
+
+↓
+
+Pending Verification
+
+↓
+
+Admin Approval
+
+↓
+
+Approval Email
+
+↓
+
+Account Activated
+
+Admin
+
+No registration.
+
+Only predefined credentials.
+
+3. Patient Information Architecture
+Dashboard
+
+│
+
+├── Find Doctors
+
+├── Doctor Details
+
+├── Book Appointment
+
+├── Appointment Details
+
+├── Upcoming Appointments
+
+├── Appointment History
+
+├── Medical Records
+
+├── Uploaded Reports
+
+├── Notifications
+
+├── Reviews
+
+├── Profile
+
+└── Settings
+Patient Dashboard
+
+Purpose:
+
+Home screen.
+
+Shows:
+
+Upcoming Appointment
+
+Quick Book
+
+Medical History Summary
+
+Recent Notifications
+
+Quick Search
+
+Recent Reports
+
+Favorite Doctors (future)
+
+Doctor Search
+
+Contains:
+
+Search
+
+Filters
+
+Cards
+
+Sort
+
+Pagination
+
+Filters:
+
+✔ Specialization
+
+✔ Rating
+
+✔ Availability
+
+✔ Experience
+
+✔ Alphabetical
+
+Doctor Details
+
+Shows
+
+Doctor photo
+
+Qualification
+
+Experience
+
+Specialization
+
+Languages
+
+Average Rating
+
+Reviews
+
+Available Slots
+
+Book Button
+
+Booking Page
+
+Calendar
+
+Available Slots
+
+Selected Slot
+
+Confirmation
+
+Google Calendar Connected?
+
+Appointment Summary
+
+Appointment Details
+
+Reference ID
+
+Doctor
+
+Date
+
+Time
+
+Status
+
+Calendar Status
+
+Cancel Appointment
+
+Download Summary (future)
+
+Medical Records
+
+Timeline
+
+↓
+
+Medical Record
+
+↓
+
+Prescription
+
+↓
+
+Reports
+
+↓
+
+Diagnosis
+
+↓
+
+Follow-up
+
+Uploaded Reports
+
+Independent reports uploaded by patient.
+
+Blood Test
+
+MRI
+
+CT
+
+X-Ray
+
+PDF
+
+Images
+
+Upload New
+
+Notifications
+
+Booking
+
+Approval
+
+Reminder
+
+Calendar
+
+Emails
+
+Reviews
+
+Reviews submitted.
+
+Pending reviews.
+
+Rate doctor.
+
+Profile
+
+Personal information.
+
+Emergency Contact
+
+Blood Group
+
+Age
+
+Phone
+
+Address
+
+Settings
+
+Password
+
+Google Calendar
+
+Notifications
+
+Theme
+
+Logout
+
+4. Doctor Information Architecture
+Dashboard
+
+│
+
+├── Today's Schedule
+
+├── Calendar
+
+├── Working Hours
+
+├── Leave Management
+
+├── Patient Details
+
+├── Consultation
+
+├── Medical Records
+
+├── Reviews
+
+├── Profile
+
+└── Settings
+Doctor Dashboard
+
+Overview
+
+Today's Appointments
+
+Upcoming Consultations
+
+Average Rating
+
+Pending Reports
+
+Calendar Status
+
+Notifications
+
+Today's Schedule
+
+Chronological.
+
+9:00
+
+9:30
+
+10:00
+
+10:30
+
+Each row
+
+Patient
+
+Status
+
+Open Consultation
+
+Calendar
+
+Week
+
+Month
+
+Agenda
+
+Manage Slots
+
+Generate Slots
+
+Working Hours
+
+Monday
+
+Tuesday
+
+Wednesday
+
+...
+
+Slot Duration
+
+Buffer
+
+Vacation
+
+Leave Management
+
+Request Leave
+
+Upcoming Leave
+
+Past Leave
+
+Patient Details
+
+History
+
+Previous Reports
+
+EMR
+
+Prescriptions
+
+Timeline
+
+Consultation Screen
+
+This is probably the most important doctor page.
+
+Contains
+
+Patient Summary
+
+Symptoms
+
+Diagnosis
+
+Prescription
+
+Attachments
+
+Follow-up
+
+Complete Consultation
+
+Reviews
+
+Average Rating
+
+Graphs
+
+Patient Reviews
+
+Profile
+
+Qualification
+
+Experience
+
+Specialization
+
+Languages
+
+Bio
+
+Documents
+
+Settings
+
+Password
+
+Calendar
+
+Notifications
+
+Theme
+
+5. Admin Information Architecture
+Dashboard
+
+│
+
+├── Doctor Approvals
+
+├── Doctors
+
+├── Patients
+
+├── Appointments
+
+├── Audit Logs
+
+├── Notifications
+
+├── Analytics
+
+├── Settings
+
+└── System Health
+Dashboard
+
+KPIs
+
+Pending Doctors
+
+Appointments Today
+
+Doctors
+
+Patients
+
+No Shows
+
+Completed
+
+Audit Events
+
+Doctor Approvals
+
+Pending
+
+Approved
+
+Rejected
+
+View Documents
+
+Approve
+
+Reject
+
+Doctors
+
+Search
+
+Edit
+
+Suspend
+
+Working Hours
+
+Schedules
+
+Patients
+
+Search
+
+View
+
+Appointments
+
+Reports
+
+Medical History
+
+Appointments
+
+All appointments
+
+Filter
+
+Status
+
+Doctor
+
+Patient
+
+Date
+
+Audit Logs
+
+Every important action.
+
+Time
+
+Actor
+
+Action
+
+IP
+
+Analytics
+
+Doctor Ratings
+
+Bookings
+
+Appointments
+
+Specialization Distribution
+
+Monthly Growth
+
+System Health
+
+Database
+
+Worker
+
+Mailpit
+
+Calendar Sync
+
+Serverless
+
+Docker
+
+6. Navigation Strategy
+
+Desktop
+
+Sidebar
+
++
+
+Top Navigation
+
+Mobile
+
+Top Bar
+
++
+
+Bottom Navigation
+
++
+
+Drawer
+7. Route Protection
+
+Guest
+
+↓
+
+Public only
+
+Patient
+
+↓
+
+Patient routes only
+
+Doctor
+
+↓
+
+Doctor routes only
+
+Admin
+
+↓
+
+Everything
+
+8. Backend Mapping
+
+Every screen should consume only the APIs it needs.
+
+Examples:
+
+Patient Dashboard
+
+↓
+
+Appointments API
+
+↓
+
+Notifications API
+
+↓
+
+Medical Records API
+
+Doctor Dashboard
+
+↓
+
+Today's Schedule
+
+↓
+
+Reviews
+
+↓
+
+Calendar
+
+Admin Dashboard
+
+↓
+
+Analytics
+
+↓
+
+Audit Logs
+
+↓
+
+Doctor Requests
+
+No screen should fetch unnecessary data.
+
+9. Estimated Screen Count
+Module	Screens
+Guest	8
+Patient	11
+Doctor	10
+Admin	8
+Shared	6
+
+Estimated Total: 43 screens
+
+📘 MediBridge Product Design Specification v1.0
+Section 3 — Design System & UI Language
+
+This section will become the design bible for the entire application. Antigrav should not invent styles beyond what is specified here.
+
+1. Overall Design Philosophy
+
+The UI should blend the strengths of several well-known products:
+
+Apple Health → clean layouts, whitespace, approachable healthcare feel.
+Stripe Dashboard → organized cards, excellent spacing, professional SaaS aesthetics.
+Notion → readability and structured content.
+Google Calendar → intuitive scheduling experience.
+Linear → polished interactions, subtle animations, consistent components.
+
+Overall feeling:
+
+70% Professional SaaS + 20% Healthcare + 10% Premium Modern Effects
+
+Avoid:
+
+Neon colors.
+Overly rounded cartoon UI.
+Excessive gradients.
+Heavy glassmorphism.
+Busy dashboards.
+2. Theme Support
+
+The application must support:
+
+🌞 Light Mode (default)
+🌙 Dark Mode
+
+Both themes should feel equally polished.
+
+The user's preference is saved.
+
+If no preference exists, follow the operating system theme.
+
+3. Color System
+Primary
+
+Medical Blue
+
+#2563EB
+
+Used for:
+
+Primary buttons
+Active navigation
+Links
+Focus states
+Secondary
+
+Healthcare Teal
+
+#14B8A6
+
+Used for:
+
+Calendar
+Confirmations
+Health-related actions
+Accent
+
+Soft Indigo
+
+#6366F1
+
+Used sparingly for highlights.
+
+Status Colors
+
+Success
+
+Green
+
+Warning
+
+Amber
+
+Danger
+
+Red
+
+Info
+
+Blue
+
+Pending
+
+Orange
+
+Completed
+
+Green
+
+Cancelled
+
+Gray
+
+No Show
+
+Red
+
+4. Typography
+
+Heading
+
+Plus Jakarta Sans
+
+Subheading
+
+Inter SemiBold
+
+Body
+
+Inter Regular
+
+Reference IDs
+
+JetBrains Mono
+
+Never mix more than these fonts.
+
+5. Layout System
+
+Everything follows an 8px spacing grid.
+
+Standard page layout:
+
+Top Navigation
+
+↓
+
+Content Header
+
+↓
+
+Quick Actions
+
+↓
+
+Main Content Grid
+
+↓
+
+Cards
+
+↓
+
+Footer
+
+Desktop uses a 12-column grid.
+
+Tablet uses an 8-column grid.
+
+Mobile uses a 4-column grid.
+
+6. Navigation
+
+Desktop
+
+Persistent left sidebar.
+
+Top header.
+
+Breadcrumbs.
+
+Profile dropdown.
+
+Notification bell.
+
+Search.
+
+Tablet
+
+Collapsible sidebar.
+
+Mobile
+
+Top App Bar.
+
+Bottom Navigation.
+
+Hamburger drawer.
+
+Floating action buttons only where appropriate.
+
+7. Cards
+
+Cards are the primary design element.
+
+Examples:
+
+Doctor Card
+
+Appointment Card
+
+Medical Record Card
+
+Statistics Card
+
+Review Card
+
+Notification Card
+
+EMR Card
+
+Audit Card
+
+Every card should include:
+
+Clear title
+Icon (when useful)
+Status badge
+Primary action
+Secondary action
+8. Forms
+
+Every form should support:
+
+Inline validation
+Clear helper text
+Error messages below fields
+Keyboard navigation
+Accessible labels
+
+Required fields are clearly marked.
+
+9. Buttons
+
+Primary
+
+Filled
+
+Secondary
+
+Outlined
+
+Danger
+
+Red
+
+Ghost
+
+Transparent
+
+Icon
+
+Circular
+
+Loading buttons show spinner.
+
+Disabled buttons remain readable.
+
+10. Inputs
+
+Text
+
+Email
+
+Password
+
+Search
+
+Dropdown
+
+Date Picker
+
+Time Picker
+
+Multi-select
+
+Tag selector
+
+Text area
+
+Rich prescription editor
+
+All inputs use the same visual style.
+
+11. Calendar
+
+The calendar is one of the most important UI components.
+
+Requirements:
+
+Month view.
+Week view.
+Agenda view.
+Day view (doctor schedule).
+
+Slots:
+
+Green → Available
+
+Blue → Booked
+
+Gray → Completed
+
+Red → No Show
+
+Orange → In Consultation
+
+Clicking a slot opens a side panel, not a new page.
+
+12. Timeline
+
+The Medical Timeline is a signature feature.
+
+Example:
+
+2025
+
+Blood Test
+
+↓
+
+Consultation
+
+↓
+
+Prescription
+
+↓
+
+MRI
+
+↓
+
+Follow-up
+
+↓
+
+Consultation
+
+Timeline entries use icons and colors based on type.
+
+13. Dashboard Widgets
+
+Each dashboard begins with summary cards.
+
+Patient:
+
+Upcoming Appointment
+Recent Reports
+Notifications
+Last Consultation
+
+Doctor:
+
+Today's Appointments
+Average Rating
+Pending Consultations
+Calendar Sync Status
+
+Admin:
+
+Pending Doctor Approvals
+Today's Appointments
+Registered Doctors
+Registered Patients
+System Health
+14. Tables
+
+Professional data tables.
+
+Support:
+
+Search
+Filters
+Sorting
+Pagination
+Export (future-ready)
+Responsive collapse on mobile
+15. Empty States
+
+Every page without data should explain what to do next.
+
+Example:
+
+"No appointments yet.
+
+Book your first consultation to get started."
+
+Never leave empty white space.
+
+16. Error States
+
+Friendly wording.
+
+Example:
+
+Instead of:
+
+500 Internal Server Error
+
+Use:
+
+"We couldn't load your appointments.
+
+Please try again."
+
+Include a Retry button.
+
+17. Loading States
+
+Use skeleton loaders.
+
+Avoid full-page spinners whenever possible.
+
+Examples:
+
+Loading doctor cards.
+
+Loading appointments.
+
+Loading EMR timeline.
+
+Loading analytics.
+
+18. Notifications
+
+Bell icon.
+
+Unread badge.
+
+Grouped by:
+
+Appointments
+Calendar
+Reviews
+Approvals
+System
+
+Toast notifications should be subtle.
+
+19. Motion Design
+
+Animations should be fast and purposeful.
+
+Examples:
+
+Page fade-in.
+Card hover lift.
+Modal fade.
+Drawer slide.
+Calendar transition.
+Toast slide.
+Button ripple.
+
+Duration:
+
+150–250ms.
+
+20. Accessibility
+
+Required:
+
+Keyboard navigation.
+High contrast.
+Large tap targets.
+Screen reader labels.
+Visible focus rings.
+Responsive font scaling.
+📘 MediBridge Product Design Specification v1.0
+Section 4 — Component Library
+Philosophy
+
+Every component should follow three rules:
+
+Consistency — identical behavior everywhere.
+Accessibility — keyboard-friendly, screen-reader compatible, responsive.
+Reusability — never duplicate components unnecessarily.
+1. Navigation Components
+Sidebar (Desktop)
+
+Persistent on desktop.
+
+Contains:
+
+MediBridge Logo
+Current Hospital Name (optional)
+Navigation Menu
+Active Indicator
+Notification Badge
+User Profile (bottom)
+
+Behavior:
+
+Expand/Collapse
+Smooth width animation
+Active page highlighted
+Icons remain visible when collapsed
+Top Navigation
+
+Contains:
+
+Breadcrumb
+Search
+Notification Bell
+Theme Toggle
+Profile Menu
+
+Sticky while scrolling.
+
+Mobile Navigation
+
+Top App Bar
+
+Bottom Navigation
+
+Tabs:
+
+Home
+Appointments
+Calendar (Doctor only)
+Notifications
+Profile
+
+Overflow items go into a drawer.
+
+2. Buttons
+
+Variants:
+
+Primary
+Secondary
+Outline
+Ghost
+Danger
+Success
+Icon
+Floating Action Button (FAB)
+
+States:
+
+Default
+Hover
+Active
+Disabled
+Loading
+
+Loading buttons replace text with spinner.
+
+3. Input Components
+
+Text Input
+
+Email
+
+Password
+
+Phone
+
+OTP
+
+Search
+
+Dropdown
+
+Autocomplete
+
+Multi-select
+
+Tag Selector
+
+Date Picker
+
+Time Picker
+
+Rich Text Area
+
+Prescription Editor
+
+Every input supports:
+
+Label
+Helper Text
+Error Message
+Success State
+Disabled State
+4. Cards
+Doctor Card
+
+Shows:
+
+Photo
+Name
+Qualification
+Specialization
+Experience
+Rating
+Languages
+Availability Badge
+Book Button
+Appointment Card
+
+Shows:
+
+Doctor
+Patient (Doctor/Admin)
+Date
+Time
+Status
+Calendar Status
+Actions
+Medical Record Card
+
+Shows:
+
+Diagnosis
+Date
+Doctor
+Attached Reports
+Follow-up
+Review Card
+
+Shows:
+
+Patient Name (or Anonymous)
+Rating
+Review
+Date
+Notification Card
+
+Shows:
+
+Icon
+Title
+Message
+Timestamp
+Read/Unread
+Statistics Card
+
+Used everywhere.
+
+Contains:
+
+Icon
+Metric
+Subtitle
+Trend (optional)
+
+Example:
+
+Today's Appointments
+
+24
+
+↑ +8%
+5. Calendar Components
+
+This is one of the application's flagship components.
+
+Views:
+
+Month
+Week
+Day
+Agenda
+
+Slot Colors:
+
+🟢 Available
+
+🔵 Booked
+
+🟠 In Consultation
+
+⚪ Completed
+
+🔴 No Show
+
+Clicking a slot opens a side drawer with appointment details instead of navigating away.
+
+6. Timeline Component
+
+Used for:
+
+Medical History
+Appointment History
+Audit Logs
+
+Each item contains:
+
+Icon
+Date
+Title
+Description
+Optional attachment
+7. Data Tables
+
+Support:
+
+Search
+Sort
+Filters
+Pagination
+Responsive Layout
+Sticky Header
+
+Used for:
+
+Doctors
+Patients
+Appointments
+Audit Logs
+Reviews
+8. File Upload
+
+Supports:
+
+Drag & Drop
+Browse
+Preview
+Upload Progress
+Remove File
+
+Allowed:
+
+PDF
+JPG
+JPEG
+PNG
+
+Reject unsupported types with friendly messages.
+
+9. Notifications
+
+Three types:
+
+Toast
+In-app Notification
+Alert Banner
+
+Grouped by:
+
+Appointment
+Review
+Calendar
+Doctor Approval
+System
+10. Modals
+
+Used for:
+
+Confirm Booking
+Cancel Appointment
+Delete Record
+Approve Doctor
+Reject Doctor
+
+Must support:
+
+ESC close
+Focus trap
+Keyboard navigation
+11. Status Badges
+
+Standardized colors:
+
+Pending
+Approved
+Rejected
+Available
+Booked
+In Consultation
+Completed
+Cancelled
+No Show
+
+These colors must remain consistent everywhere.
+
+12. Search & Filters
+
+Global search behavior:
+
+Debounced input
+Recent searches (optional)
+Clear button
+
+Doctor filters:
+
+Specialization
+Rating
+Experience
+Availability
+
+Appointment filters:
+
+Date
+Status
+Doctor
+Patient
+13. Dashboard Widgets
+
+Patient:
+
+Upcoming Appointment
+Recent Medical Records
+Notifications
+Reports
+
+Doctor:
+
+Today's Schedule
+Rating Summary
+Calendar Status
+Pending Consultations
+
+Admin:
+
+Pending Doctor Approvals
+Today's Appointments
+Doctors
+Patients
+Audit Logs
+System Health
+14. Empty States
+
+Every module gets a custom illustration/icon and helpful message.
+
+Examples:
+
+"No doctors found."
+
+"No reports uploaded yet."
+
+"No notifications."
+
+Include a clear primary action where appropriate.
+
+15. Skeleton Loaders
+
+Every list and card should have matching skeletons.
+
+Avoid blocking the entire page with spinners.
+
+16. Error Components
+
+Display:
+
+Friendly title
+Short explanation
+Retry button
+
+Never expose raw backend errors.
+
+17. Responsive Behavior
+
+Desktop:
+
+Sidebar + Content
+
+Tablet:
+
+Collapsible Sidebar
+
+Mobile:
+
+Bottom Navigation
+Drawer
+Cards instead of wide tables
+18. Accessibility Standards
+
+Every component must include:
+
+Visible focus state
+Keyboard support
+ARIA labels where appropriate
+Proper contrast
+Minimum 44px touch targets
+
+📘 MediBridge Product Design Specification v1.0
+Section 5 — Landing Page (Screen 01)
+Goal
+
+The landing page should accomplish three things within 10 seconds:
+
+Explain what MediBridge is.
+Demonstrate that it's a modern healthcare platform.
+Encourage users to sign in or explore.
+Visual Style
+
+Think:
+
+Apple Health
+Stripe
+Linear
+Google Health
+
+Minimal.
+
+Bright.
+
+Lots of whitespace.
+
+Rounded cards.
+
+Soft shadows.
+
+Professional illustrations.
+
+No stock photos of doctors shaking hands.
+
+Navigation Bar
+
+Sticky while scrolling.
+
+Left
+MediBridge Logo
+MediBridge text
+Center
+Features
+How It Works
+Technology
+FAQ
+Right
+Login
+Register (Primary Button)
+Theme Toggle (🌞/🌙)
+
+Desktop:
+
+Logo   Features   How it Works   Technology   FAQ          Login   Register
+
+Mobile:
+
+Hamburger menu
+Login
+Register
+Hero Section
+
+This is the first thing users see.
+
+Left Side
+
+Large heading:
+
+Modern Healthcare, Connected in One Place
+
+Subheading:
+
+Book appointments, manage medical records, synchronize with Google Calendar, and simplify hospital operations through a secure and intuitive platform.
+
+Buttons:
+
+Get Started (Primary)
+Explore Features (Secondary)
+
+Below buttons:
+
+Technology badges:
+
+Django
+PostgreSQL
+Google Calendar API
+Docker
+Serverless
+Python
+Right Side
+
+Instead of a generic illustration, show a live dashboard mockup featuring:
+
+Upcoming appointment card
+Calendar widget
+Doctor profile card
+Notification panel
+Medical timeline preview
+
+This immediately communicates what the application does.
+
+Statistics Section
+
+Animated counters.
+
+Examples:
+
+100+ Demo Patients
+25 Doctors
+500+ Appointments
+99.9% Booking Accuracy
+
+These values come from seeded demo data later.
+
+Features Section
+
+Grid of feature cards.
+
+Each card includes:
+
+Icon
+Title
+Short description
+
+Suggested features:
+
+Smart Appointment Booking
+Doctor Availability
+Electronic Medical Records
+Google Calendar Sync
+Secure Authentication
+Medical Report Uploads
+Doctor Reviews
+Hospital Administration
+"How It Works"
+
+Three-step horizontal flow:
+
+Step 1
+
+Choose a Doctor
+
+↓
+
+Step 2
+
+Book an Available Time Slot
+
+↓
+
+Step 3
+
+Attend Consultation & Access Medical Records
+
+Use clean illustrations or icons.
+
+Why Choose MediBridge
+
+Split layout.
+
+Left:
+
+Illustration of a connected healthcare workflow.
+
+Right:
+
+Checklist:
+
+Secure role-based authentication
+Real-time booking
+Google Calendar integration
+Local-first deployment
+Modern EMR
+Review system
+Production-ready backend
+Technology Stack
+
+Interactive cards displaying:
+
+Backend:
+
+Django
+PostgreSQL
+Docker
+Python
+
+Frontend (future):
+
+React
+TypeScript
+Tailwind CSS
+
+Integrations:
+
+Google Calendar API
+OAuth2
+Mailpit
+Serverless Offline
+
+Clicking a card reveals a short explanation.
+
+Demo Credentials
+
+A recruiter shouldn't have to guess how to log in.
+
+Provide clearly labeled demo accounts:
+
+Admin
+
+Email: admin@medibridge.local
+
+Password: ********
+
+Copy button.
+
+Doctor
+
+Email: doctor@medibridge.local
+
+Password: ********
+
+Copy button.
+
+Patient
+
+Email: patient@medibridge.local
+
+Password: ********
+
+Copy button.
+
+These credentials should match the seeded data.
+
+FAQ
+
+Accordion layout.
+
+Questions like:
+
+How do I book an appointment?
+How does Google Calendar sync work?
+Can doctors manage availability?
+Are medical records secure?
+What happens if a slot is already booked?
+Footer
+
+Columns:
+
+Product
+
+Features
+Technology
+FAQ
+
+Resources
+
+Documentation
+GitHub (optional)
+Demo
+
+Legal
+
+Privacy Policy
+Terms
+
+Bottom:
+
+© 2026 MediBridge — Connecting Care. Simplifying Healthcare.
+
+Responsive Behavior
+Desktop
+
+Two-column hero.
+
+Feature grid: 4 columns.
+
+Statistics: 4 cards.
+
+Tablet
+
+Hero stacks vertically.
+
+Feature grid: 2 columns.
+
+Mobile
+
+Single-column layout.
+
+Hero image below text.
+
+Sticky bottom "Get Started" button.
+
+Cards become swipeable where appropriate.
+
+Animations
+
+Keep them subtle:
+
+Hero fades in.
+Statistics count up.
+Cards lift slightly on hover.
+FAQ expands smoothly.
+Navbar gains a subtle shadow when scrolling.
+Accessibility
+Keyboard-friendly navigation.
+Sufficient color contrast.
+Focus indicators.
+Proper heading hierarchy.
+Alt text for illustrations.
+
+📘 MediBridge Product Design Specification v1.0
+Section 6 — Authentication Experience (Screens 02–07)
+
+The authentication experience should feel simple, secure, and trustworthy. Every screen should reassure users that they are using a professional healthcare platform.
+
+Design Philosophy
+
+Authentication screens should never feel intimidating.
+
+Use a split layout on desktop:
+
+Left: Branding, illustration, tagline.
+Right: Authentication form.
+
+On mobile:
+
+Branding on top.
+Form below.
+Shared Elements
+
+Every authentication screen includes:
+
+MediBridge logo
+Tagline
+Theme toggle
+Back to Home link
+Footer with Privacy Policy and Terms
+Screen 02 — Login
+Purpose
+
+Allow Admins, Doctors, and Patients to sign in through the same form.
+
+The backend automatically detects the user's role and redirects them to the correct dashboard.
+
+Layout
+
+Left panel:
+
+Illustration showing connected healthcare.
+
+Headline:
+
+Welcome Back
+
+Subheading:
+
+Sign in to continue managing your healthcare experience.
+
+Right panel:
+
+Login form:
+
+Email
+Password
+Show/Hide Password
+Remember Me
+Forgot Password
+Login button
+
+Below the button:
+
+Don't have an account? Create one
+
+Demo Credentials
+
+For demo mode, include a collapsible section:
+
+Demo Accounts
+
+Admin
+Doctor
+Patient
+
+Each has a Copy Credentials button.
+
+This makes testing much easier for reviewers.
+
+Screen 03 — Patient Registration
+
+Purpose:
+
+Create a patient account.
+
+Fields:
+
+First Name
+Last Name
+Email
+Phone Number
+Date of Birth
+Gender
+Blood Group (optional)
+Address
+Password
+Confirm Password
+Terms & Conditions checkbox
+
+Primary button:
+
+Create Patient Account
+
+After success:
+
+Show a friendly success page and redirect to login.
+
+Screen 04 — Doctor Registration
+
+Doctors require verification.
+
+Fields:
+
+Everything from Patient Registration plus:
+
+Professional Details:
+
+Medical Registration Number
+Qualification
+Years of Experience
+Hospital Name
+Specialization
+Languages Spoken
+Short Biography
+
+Document Uploads:
+
+Government ID
+Medical License
+Degree Certificate
+
+Use drag-and-drop upload components.
+
+Primary button:
+
+Submit for Verification
+
+Screen 05 — Pending Approval
+
+After doctor registration:
+
+Show a success illustration.
+
+Message:
+
+Your application has been received successfully.
+
+Our administrator will verify your credentials before activating your account.
+
+Below:
+
+Status Card:
+
+Submitted
+Under Review
+Approved (future)
+Rejected (future)
+
+This page reassures doctors instead of leaving them wondering.
+
+Screen 06 — Forgot Password
+
+Simple flow:
+
+Step 1:
+
+Enter Email
+
+↓
+
+Step 2:
+
+Email Sent Confirmation
+
+↓
+
+Step 3:
+
+Reset Password
+
+(Backend implementation may initially use Django's password reset flow.)
+
+Screen 07 — Google Calendar Connection
+
+This is not authentication.
+
+It's an optional account enhancement.
+
+Purpose:
+
+Allow users to connect Google Calendar for appointment synchronization.
+
+Status card:
+
+Connected
+Not Connected
+Last Sync
+Sync Errors (if any)
+
+Primary button:
+
+Connect Google Calendar
+
+After successful OAuth:
+
+Show:
+
+Google Calendar connected successfully.
+
+Appointments will now synchronize automatically.
+
+Form Design Rules
+
+Every form must include:
+
+Inline validation
+Helpful error messages
+Password strength indicator
+Keyboard navigation
+Auto-focus first field
+Accessible labels
+Micro-interactions
+Buttons show loading spinners during submission.
+Password visibility toggles smoothly.
+Upload areas highlight when dragging files.
+Validation appears immediately after field blur.
+Success transitions use a subtle fade.
+Empty & Error States
+
+Examples:
+
+Incorrect password:
+
+We couldn't sign you in. Please check your email and password.
+
+Doctor pending approval:
+
+Your account is awaiting administrator approval.
+
+Account rejected:
+
+Your verification request was declined. Please contact the administrator or resubmit updated documents.
+
+Security Indicators
+
+Subtle reassurance text:
+
+🔒 Your information is securely encrypted.
+🛡 Role-based access protects patient data.
+Responsive Behavior
+
+Desktop:
+
+Split-screen layout.
+
+Tablet:
+
+Smaller illustration.
+
+Mobile:
+
+Single-column form.
+Large touch targets.
+Sticky primary action button if needed.
+📘 MediBridge Product Design Specification (PDS) v1.0
+Section 7 — Patient Experience (Screens 08–18)
+Design Goal
+
+The patient dashboard should never feel like a hospital ERP.
+
+Instead, it should feel like:
+
+Apple Health
+Google Calendar
+Google Maps
+Stripe Dashboard
+
+combined into a clean healthcare experience.
+
+When a patient logs in, they should immediately know:
+
+Do I have an appointment?
+Where is it?
+What should I do next?
+Screen 08 — Patient Dashboard
+Purpose
+
+The patient's home screen.
+
+Everything important should be visible within the first scroll.
+
+Header
+Good Morning,
+
+Sanchit 👋
+
+Let's take care of your health today.
+
+Right side:
+
+Notification Bell
+Profile Avatar
+Hero Card
+
+If an appointment exists:
+
+Upcoming Appointment
+
+Dr. Aditi Sharma
+
+Cardiologist
+
+Tomorrow
+
+10:30 AM
+
+[View Details]
+
+[Add to Calendar]
+
+If no appointment exists:
+
+No Upcoming Appointments
+
+Find a doctor and book your first consultation.
+
+[Book Appointment]
+Quick Actions
+
+Four equal cards.
+
+Book Appointment
+
+Medical Records
+
+Upload Reports
+
+Notifications
+
+Health Journey Preview ⭐
+
+This becomes the signature feature.
+
+Instead of a boring table.
+
+Blood Test
+
+↓
+
+Consultation
+
+↓
+
+Prescription
+
+↓
+
+X-Ray
+
+↓
+
+Follow-up
+
+Click
+
+↓
+
+opens complete timeline.
+
+Recent Reports
+
+Latest uploads.
+
+Preview thumbnails.
+
+Upload button.
+
+Notifications
+
+Latest three.
+
+Unread highlighted.
+
+Dashboard Widgets
+
+Upcoming Appointment
+
+Medical Reports
+
+Recent Prescription
+
+Pending Follow-up
+
+Google Calendar Status
+
+Screen 09 — Find Doctors
+
+This page should be amazing.
+
+Think Airbnb.
+
+Not hospital software.
+
+Top Search
+
+Search doctors...
+
+🔍
+
+Filters
+
+Specialization
+
+Rating
+
+Experience
+
+Languages
+
+Available Today
+
+Available Tomorrow
+
+Available This Week
+
+Doctor Cards
+
+Large.
+
+Photo.
+
+Name.
+
+Specialization.
+
+Experience.
+
+Hospital.
+
+Rating.
+
+Languages.
+
+Next Available Slot.
+
+Book Button.
+
+View Toggle
+
+Grid
+
+List
+
+Screen 10 — Doctor Profile
+
+One of the most important pages.
+
+Hero
+
+Doctor Image
+
+Name
+
+Specialization
+
+Qualification
+
+Experience
+
+Languages
+
+Hospital
+
+Rating
+
+Tabs
+
+Overview
+
+Reviews
+
+Availability
+
+Overview
+
+Biography
+
+Education
+
+Achievements
+
+Consultation Fee (future)
+
+Reviews
+
+Average Rating
+
+Progress bars
+
+Latest Reviews
+
+Availability
+
+Interactive Calendar
+
+Green
+
+↓
+
+Available
+
+Red
+
+↓
+
+Booked
+
+Book Appointment
+
+Sticky button.
+
+Screen 11 — Book Appointment
+
+Beautiful scheduling UI.
+
+Calendar
+
+Month selector.
+
+Right Panel
+
+Selected Date
+
+↓
+
+Available Slots
+
+↓
+
+Appointment Summary
+
+↓
+
+Confirm
+
+Confirmation Modal
+
+Doctor
+
+Date
+
+Time
+
+Calendar Sync Enabled?
+
+Confirm
+
+Screen 12 — Appointment Details
+
+Shows
+
+Reference ID
+
+Doctor
+
+Time
+
+Status
+
+Google Calendar Status
+
+Notes
+
+Buttons
+
+Cancel
+
+Download Summary (future)
+
+Screen 13 — Appointment History
+
+Timeline instead of table.
+
+2026
+
+↓
+
+Cardiology
+
+↓
+
+Dermatology
+
+↓
+
+ENT
+
+↓
+
+Orthopedics
+
+Filters
+
+Year
+
+Doctor
+
+Status
+
+Screen 14 — Medical Timeline ⭐⭐⭐⭐⭐
+
+This will become MediBridge's signature page.
+
+Instead of
+
+Reports
+
+Appointments
+
+Prescriptions
+
+Everything becomes
+
+2024
+
+↓
+
+Blood Test
+
+↓
+
+Consultation
+
+↓
+
+Prescription
+
+↓
+
+MRI
+
+↓
+
+Follow-up
+
+↓
+
+Recovery
+
+Each event expands.
+
+Beautiful.
+
+Easy to understand.
+
+Screen 15 — Upload Reports
+
+Drag & Drop
+
+or
+
+Browse
+
+Accepted
+
+PDF
+
+JPG
+
+PNG
+
+JPEG
+
+Preview
+
+Progress
+
+Success
+
+Delete
+
+Categorization
+
+Blood Test
+
+MRI
+
+CT
+
+Prescription
+
+Other
+
+Screen 16 — Notifications
+
+Grouped
+
+Appointments
+
+Calendar
+
+Reports
+
+System
+
+Doctor Messages (future)
+
+Swipe to archive (mobile).
+
+Screen 17 — Reviews
+
+Pending Reviews
+
+Completed Reviews
+
+Rate Doctor
+
+⭐⭐⭐⭐⭐
+
+Comment
+
+Submit
+
+Cannot review cancelled appointments.
+
+Screen 18 — Profile & Settings
+
+Profile
+
+Photo
+
+Personal Info
+
+Emergency Contact
+
+Blood Group
+
+Address
+
+Settings
+
+Theme
+
+Password
+
+Google Calendar
+
+Notification Preferences
+
+Logout
+
+Mobile Experience
+
+Patient experience should feel like a native app.
+
+Bottom Navigation
+
+🏠
+
+Appointments
+
+Doctors
+
+Notifications
+
+Profile
+
+Floating
+
+Book Appointment
+
+button.
+
+Premium UX Ideas ⭐
+
+These are things I don't want Antigrav inventing later.
+
+1. Floating Health Score
+
+Not a medical diagnosis.
+
+Just a profile completeness indicator.
+
+Profile Complete
+
+92%
+
+Encourages users to complete missing information.
+
+2. Doctor Comparison
+
+Select two doctors.
+
+Compare:
+
+Experience
+
+Languages
+
+Ratings
+
+Availability
+
+This is rarely found in hospital systems and makes choosing easier.
+
+3. Recently Viewed Doctors
+
+Exactly like shopping websites.
+
+Useful for patients browsing options.
+
+4. Smart Search
+
+Typing:
+
+Heart
+
+Should find:
+
+Cardiologist
+
+Heart Specialist
+
+Cardiology
+
+Related keywords
+
+5. Empty State Personalization
+
+Instead of
+
+No appointments
+
+Display:
+
+You're all set!
+
+You don't have any upcoming appointments. When you're ready, book a consultation with one of our specialists.
+
+Much warmer and more professional.
+
+Final Patient Experience Philosophy
+
+After using MediBridge for five minutes, a patient should feel:
+
+I always know what my next appointment is.
+I can find doctors quickly.
+My medical history is organized.
+I don't have to search for reports.
+Everything important is one click away.
+
+📘 MediBridge Product Design Specification (PDS) v1.0
+Section 8 — Doctor Experience (Screens 19–29)
+Design Philosophy
+
+When a doctor logs in, they should immediately know:
+
+Who is my next patient?
+What is their history?
+What consultations are pending?
+What needs my attention today?
+
+The interface should reduce administrative effort and maximize consultation time.
+
+Screen 19 — Doctor Dashboard
+Purpose
+
+The doctor's operational home page.
+
+This page should answer today's priorities at a glance.
+
+Header
+Good Morning,
+
+Dr. Sharma 👋
+
+You have 8 consultations scheduled today.
+
+Right side:
+
+Notification Bell
+Google Calendar Sync Status
+Profile Avatar
+KPI Cards
+
+Display:
+
+Today's Appointments
+Patients Seen Today
+Average Rating
+Pending EMRs
+Calendar Sync Status
+Pending Reviews
+Main Area
+Today's Schedule
+
+Chronological list:
+
+09:00  Rahul Sharma        Upcoming
+
+09:30  Priya Singh         Upcoming
+
+10:00  Amit Kumar          In Consultation
+
+10:30  Karan Verma         Completed
+
+Each row has:
+
+Patient Name
+Age
+Appointment Status
+Open Consultation
+Right Panel
+
+Today's summary:
+
+Available Hours
+Next Appointment Countdown
+Notifications
+Quick Actions
+Screen 20 — Calendar & Schedule
+
+Purpose:
+
+Manage availability.
+
+Views:
+
+Day
+Week
+Month
+
+Actions:
+
+Generate Slots
+Edit Slots
+Delete Slots
+Add Leave
+Slot Colors
+
+🟢 Available
+
+🔵 Booked
+
+🟠 In Consultation
+
+⚪ Completed
+
+🔴 No Show
+
+Clicking a slot opens an edit drawer instead of leaving the page.
+
+Screen 21 — Working Hours
+
+Doctor configures:
+
+Monday
+
+Tuesday
+
+Wednesday
+
+...
+
+Fields:
+
+Start Time
+
+End Time
+
+Slot Duration
+
+Buffer Time
+
+Break Hours
+
+Buttons:
+
+Save
+Reset
+
+Admin users see the same page with override permissions.
+
+Screen 22 — Leave Management
+
+Doctor can:
+
+Apply for Leave
+View Upcoming Leave
+View Past Leave
+Cancel Future Leave
+
+Calendar highlights unavailable dates.
+
+Screen 23 — Today's Patients
+
+Instead of a simple list:
+
+Display a compact patient queue.
+
+Each patient card shows:
+
+Name
+Age
+Appointment Time
+Status
+Previous Visits
+Open Consultation
+
+Quick search at top.
+
+Screen 24 — Consultation Workspace ⭐⭐⭐⭐⭐
+
+This should become the flagship screen of MediBridge.
+
+Everything the doctor needs is on one page.
+
+Left Sidebar
+
+Patient Summary
+
+Name
+Age
+Blood Group
+Allergies (future)
+Last Visit
+Center
+
+Consultation Form
+
+Fields:
+
+Symptoms
+
+Diagnosis
+
+Clinical Notes
+
+Prescription Editor
+
+Follow-up Date
+
+Upload Attachments
+
+Buttons:
+
+Save Draft
+Complete Consultation
+Right Sidebar
+
+Patient Health Journey
+
+2024
+
+↓
+
+Blood Test
+
+↓
+
+Consultation
+
+↓
+
+Prescription
+
+↓
+
+MRI
+
+↓
+
+Follow-up
+
+Doctor never leaves this screen to check history.
+
+Screen 25 — Patient History
+
+Chronological timeline.
+
+Filters:
+
+Reports
+Consultations
+Prescriptions
+
+Search by date.
+
+Screen 26 — Reviews
+
+Overview:
+
+Average Rating
+
+Total Reviews
+
+Rating Distribution
+
+Latest Reviews
+
+Patients with completed appointments only.
+
+Screen 27 — Doctor Profile
+
+Editable fields:
+
+Bio
+Languages
+Qualifications
+Experience
+Specialization
+Hospital
+Contact (if permitted)
+
+Document status:
+
+License Verified
+Degree Uploaded
+Government ID Verified
+Screen 28 — Notifications
+
+Grouped by:
+
+Appointments
+Calendar
+Reviews
+System
+
+Unread highlighted.
+
+Screen 29 — Settings
+
+Options:
+
+Theme
+Password
+Google Calendar Connection
+Notification Preferences
+Logout
+Premium Features ⭐
+1. Patient Snapshot
+
+Hovering (desktop) or tapping (mobile) a patient opens a mini summary:
+
+Last Visit
+Previous Diagnosis
+Recent Reports
+Upcoming Follow-up
+
+No navigation required.
+
+2. Consultation Progress Indicator
+
+During consultation:
+
+Patient Summary ✔
+
+Symptoms ✔
+
+Diagnosis ✔
+
+Prescription ⏳
+
+Complete
+
+This helps prevent incomplete records.
+
+3. Calendar Health Widget
+
+Displays:
+
+Google Calendar Connected
+Last Sync Time
+Sync Status
+Pending Sync Tasks
+
+Useful for debugging during demos.
+
+4. Daily Performance
+
+Shows:
+
+Appointments Today
+Completed
+No Shows
+Average Consultation Time (future)
+Patient Satisfaction
+5. Smart Search
+
+Search patients by:
+
+Name
+Reference ID
+Phone
+Diagnosis keywords (future)
+Mobile Experience
+
+The doctor UI should remain fully usable on tablets and phones.
+
+Bottom Navigation:
+
+🏠 Dashboard
+
+📅 Schedule
+
+👥 Patients
+
+🔔 Notifications
+
+👤 Profile
+
+The Consultation Workspace adapts into stacked sections instead of three columns.
+
+Final Doctor Experience
+
+After using MediBridge, a doctor should feel:
+
+My day is organized.
+I never lose track of appointments.
+Patient history is immediately available.
+Writing EMRs is efficient.
+My schedule is easy to manage.
+
+📘 MediBridge Product Design Specification (PDS) v1.0
+Section 9 — Admin Experience (Screens 30–40)
+Design Philosophy
+
+The Admin Dashboard exists to answer one question:
+
+"Is my hospital running smoothly today?"
+
+The admin should immediately see:
+
+Pending approvals
+Active doctors
+Today's appointments
+System health
+Any operational issues
+
+Everything should be actionable.
+
+Screen 30 — Executive Dashboard
+Hero Header
+Welcome back,
+
+Hospital Administrator 👋
+
+Today's operations are running smoothly.
+KPI Cards
+
+Display:
+
+Doctors Registered
+Patients Registered
+Appointments Today
+Completed Appointments
+Pending Doctor Approvals
+No Shows
+Calendar Sync Success Rate
+Async Worker Status
+Charts
+
+Appointments (Last 30 Days)
+
+Doctor Registrations
+
+Patient Growth
+
+Specialization Distribution
+
+No Show Trend
+
+Quick Actions
+
+Approve Doctors
+
+Manage Slots
+
+View Audit Logs
+
+System Health
+
+Generate Demo Data (Development Only)
+
+Screen 31 — Doctor Verification
+
+This should feel like a document review workflow.
+
+Left Panel
+
+Pending Doctors
+
+Dr. Rahul
+
+Pending
+
+↓
+
+Dr. Priya
+
+Pending
+
+↓
+
+Dr. Amit
+
+Pending
+Right Panel
+
+Doctor Information
+
+Name
+Email
+Specialization
+Registration Number
+Experience
+Uploaded Documents
+
+Government ID
+
+Medical License
+
+Degree Certificate
+
+Preview inside the page.
+
+No downloads required unless requested.
+
+Buttons
+
+Approve
+
+Reject
+
+Request Re-upload (future)
+
+Screen 32 — Doctor Management
+
+Searchable table.
+
+Columns:
+
+Name
+Specialization
+Rating
+Working Hours
+Verification
+Status
+
+Actions:
+
+View
+
+Edit
+
+Suspend
+
+Reset Password (future)
+
+Screen 33 — Patient Management
+
+Table.
+
+Filters:
+
+Name
+
+Email
+
+Phone
+
+Blood Group
+
+Last Visit
+
+Actions:
+
+View Profile
+
+Medical History
+
+Appointments
+
+Reports
+
+Screen 34 — Appointment Management
+
+One of the most useful admin pages.
+
+Filters:
+
+Doctor
+
+Patient
+
+Status
+
+Date
+
+Specialization
+
+Table
+
+Reference ID
+
+Doctor
+
+Patient
+
+Time
+
+Status
+
+Calendar
+
+Actions
+
+Admin Override
+
+Reschedule
+
+Cancel
+
+View Details
+
+Screen 35 — Audit Center ⭐⭐⭐⭐⭐
+
+One of the coolest pages.
+
+Timeline view.
+
+14:03
+
+Doctor Approved
+
+↓
+
+14:10
+
+Patient Registered
+
+↓
+
+14:25
+
+Appointment Booked
+
+↓
+
+14:27
+
+Calendar Synced
+
+↓
+
+14:30
+
+EMR Created
+
+Each entry:
+
+Time
+
+Actor
+
+Action
+
+IP Address
+
+Details
+
+Searchable.
+
+Screen 36 — Analytics
+
+Charts
+
+Appointments
+
+Doctor Ratings
+
+Patients
+
+Bookings
+
+Reviews
+
+No Shows
+
+Top Specializations
+
+Calendar Sync Success
+
+Screen 37 — Notifications
+
+Broadcast panel.
+
+System announcements.
+
+Doctor alerts.
+
+Patient announcements (future).
+
+Email delivery logs.
+
+Screen 38 — System Health ⭐⭐⭐⭐⭐
+
+This page will impress reviewers.
+
+Think of a mini DevOps dashboard.
+
+Services
+
+🟢 Django
+
+🟢 PostgreSQL
+
+🟢 Mailpit
+
+🟢 Serverless
+
+🟢 Async Worker
+
+🟢 Google OAuth
+
+Metrics
+
+Database Connected
+
+Worker Running
+
+Emails Sent
+
+Pending Async Tasks
+
+Calendar Sync Queue
+
+Docker Status
+
+Recent Failures
+
+Google Sync Failed
+
+SMTP Retry
+
+Worker Restarted
+
+Database Recovery
+
+Screen 39 — Settings
+
+Hospital Name
+
+Hospital Address
+
+Support Email
+
+SMTP Settings (future)
+
+OAuth Status
+
+Environment Information
+
+Version
+
+Theme
+
+Screen 40 — Profile
+
+Administrator Information
+
+Role
+
+Permissions
+
+Last Login
+
+Activity Summary
+
+Premium Features ⭐
+1. Hospital Activity Feed
+
+Instead of static statistics.
+
+Live timeline.
+
+Doctor Approved
+
+↓
+
+Appointment Booked
+
+↓
+
+Review Submitted
+
+↓
+
+Medical Record Added
+
+↓
+
+Google Calendar Synced
+
+Feels like Stripe Events.
+
+2. Doctor Performance
+
+Cards
+
+Appointments
+
+Rating
+
+No Shows
+
+Average Completion Time (future)
+
+EMRs Completed
+
+3. Patient Insights
+
+Most Active Patients
+
+Most Frequent Visitors
+
+Pending Follow-ups
+
+Report Upload Trends
+
+4. Calendar Monitoring
+
+Monitor
+
+Google Calendar API
+
+Successful Syncs
+
+Failed Syncs
+
+Retry Queue
+
+5. Async Worker Monitoring
+
+Queue
+
+Running
+
+Failed
+
+Retrying
+
+Completed
+
+Error Logs
+
+Responsive Behavior
+
+Desktop
+
+Sidebar
+
+Wide tables
+
+Charts
+
+Tablet
+
+Cards
+
+Collapsible Sidebar
+
+Mobile
+
+Administrative essentials only.
+
+Tables convert to expandable cards.
+
+Charts become swipeable.
+
+Final Admin Experience
+
+The administrator should feel like they have complete visibility into:
+
+Hospital operations
+Doctors
+Patients
+Appointments
+Integrations
+Infrastructure
+
+without feeling overwhelmed.
+
+🏆 One Improvement Before We Finish the PDS
+
+Now that we've designed all three user experiences, I think we should add one final signature capability to tie everything together.
+
+🚑 "Command Palette" (Inspired by Linear & VS Code)
+
+Press:
+
+Ctrl + K (Desktop)
+
+or tap a search icon on mobile.
+
+A universal command/search opens.
+
+Examples:
+
+Search doctor.
+Search patient.
+Search appointment.
+Go to dashboard.
+Book appointment.
+Create leave.
+Upload report.
+View EMR.
+Open settings.
+
+This is one of those small features that instantly makes an application feel premium and significantly improves navigation for power users.
+
+📘 MediBridge Product Design Specification (PDS) v1.0
+Section 10 — Responsive Design & Adaptive Layout
+Philosophy
+
+MediBridge is mobile-first, but not mobile-only.
+
+It should feel equally comfortable on:
+
+📱 Phones
+📲 Tablets
+💻 Laptops
+🖥 Desktop monitors
+
+The interface should adapt gracefully rather than simply shrinking.
+
+Breakpoints
+Device	Width
+Mobile	< 640px
+Large Mobile	640–767px
+Tablet	768–1023px
+Laptop	1024–1439px
+Desktop	1440px+
+Layout Rules
+Mobile
+Bottom navigation
+Full-width cards
+Expandable sections
+No horizontal scrolling
+Tables become stacked cards
+Tablet
+Collapsible sidebar
+Two-column layouts where appropriate
+Calendar switches to week view by default
+Desktop
+Permanent sidebar
+12-column grid
+Multi-panel layouts (especially for Doctor Consultation Workspace)
+Hover interactions enabled
+Responsive Tables
+
+Instead of forcing wide tables on phones:
+
+Desktop:
+
+| Patient | Doctor | Status | Time |
+
+Mobile:
+
+Each row becomes a card showing the same information vertically with quick actions.
+
+Responsive Calendar
+
+Desktop:
+
+Month + Week + Agenda + Day views.
+
+Mobile:
+
+Agenda view by default with swipe navigation.
+
+Responsive Forms
+
+Multi-column on desktop.
+
+Single-column on mobile.
+
+Buttons always remain easy to tap.
+
+Section 11 — Motion & Interaction Guidelines
+
+Animations should never slow users down.
+
+Recommended duration:
+
+Hover: ~150 ms
+Page transition: ~200 ms
+Modal: ~200 ms
+Drawer: ~250 ms
+Toast: ~180 ms
+Interaction Examples
+Sidebar expands smoothly.
+Cards lift slightly on hover.
+Buttons subtly scale on click.
+Calendar transitions feel fluid.
+Skeleton loaders replace blank pages.
+Toasts slide in/out.
+
+No flashy parallax or excessive effects.
+
+Section 12 — Accessibility
+
+Accessibility is a requirement.
+
+Keyboard
+
+Every interactive element reachable via keyboard.
+
+Focus
+
+Visible focus ring on all controls.
+
+Contrast
+
+Meet WCAG AA contrast ratios.
+
+Touch Targets
+
+Minimum 44×44 px.
+
+Screen Readers
+
+Proper ARIA labels and semantic HTML.
+
+Color Independence
+
+Status should never rely on color alone.
+
+Example:
+
+Green badge + "Completed"
+Red badge + "Cancelled"
+Section 13 — Frontend Architecture
+Technology Stack
+React
+TypeScript
+Tailwind CSS
+React Router
+TanStack Query (for API data)
+React Hook Form
+Zod (validation)
+Framer Motion (subtle animations)
+Recharts (analytics)
+React Big Calendar or FullCalendar (doctor schedules)
+Folder Structure
+src/
+│
+├── app/
+├── assets/
+├── components/
+│   ├── ui/
+│   ├── forms/
+│   ├── cards/
+│   ├── tables/
+│   ├── calendar/
+│   ├── charts/
+│   └── layout/
+│
+├── features/
+│   ├── auth/
+│   ├── patient/
+│   ├── doctor/
+│   ├── admin/
+│   ├── appointments/
+│   ├── medical-records/
+│   ├── reviews/
+│   └── notifications/
+│
+├── hooks/
+├── services/
+├── routes/
+├── types/
+├── utils/
+└── styles/
+API Layer
+
+Every API call should be centralized.
+
+Never call fetch() directly from components.
+
+Use service modules.
+
+Example:
+
+authService
+appointmentService
+doctorService
+patientService
+reviewService
+notificationService
+State Management
+Local state for UI interactions.
+TanStack Query for server state.
+Minimal global state to avoid complexity.
+Section 14 — Frontend Engineering Rules
+
+These are mandatory for Antigrav.
+
+No placeholder components.
+No hardcoded API data except clearly labeled demo fallbacks.
+Reuse components instead of duplicating code.
+All forms must include validation.
+Every page must have loading, empty, and error states.
+Responsive behavior is required from the beginning.
+Dark mode support must be implemented across the application.
+Use TypeScript types consistently.
+Follow accessibility standards.
+Match backend APIs exactly—no inventing endpoints.
+Section 15 — Final Quality Checklist
+
+Before considering the frontend complete:
+
+Visual
+Consistent spacing
+Typography
+Color usage
+Icons
+Responsive layouts
+Functional
+Every backend feature accessible
+Google Calendar status visible
+Notifications working
+Reviews functional
+EMR accessible
+Performance
+Lazy-load large pages.
+Optimize images.
+Minimize unnecessary re-renders.
+Accessibility
+Keyboard navigation
+Screen reader support
+Proper focus handling
+🎯 Final Product Vision
+
+MediBridge should feel like:
+
+A product a hospital could realistically adopt.
+A platform that's easy for first-time users.
+A polished SaaS application rather than an academic project.
+
+When someone finishes the demo, the impression should be:
+
+"This looks like something built by a professional product team."

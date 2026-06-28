@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Dashboard - AuraHealth{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 flex-grow">
+    <!-- Header Summary -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-6">
+        <div>
+            <h1 class="text-3xl font-extrabold font-outfit text-black">Doctor Dashboard</h1>
+            <p class="text-sm text-slate-500">Dr. {{ user.get_full_name }} &bull; {{ doctor_profile.specialization }}</p>
+        </div>
+        
+        <!-- Ratings & Calendar Summary -->
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Dynamic ratings aggregate -->
+            <div class="glass-card px-4 py-2.5 rounded-xl border-white/5 text-xs flex items-center gap-2">
+                <span class="text-amber-400 font-bold">⭐⭐⭐⭐⭐ {{ doctor_profile.average_rating|default:"0.0"|floatformat:1 }}</span>
+                <span class="text-slate-500">({{ doctor_profile.total_reviews }} Reviews)</span>
+            </div>
+            
+            <div class="glass-card px-4 py-2.5 rounded-xl flex items-center gap-3 border-white/5 text-xs">
+                <div class="w-2.5 h-2.5 rounded-full {% if has_calendar_connected %}bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse{% else %}bg-amber-500{% endif %}"></div>
+                <div>
+                    <span class="text-slate-500 block font-medium">Google Calendar Sync</span>
+                    {% if has_calendar_connected %}
+                        <span class="text-emerald-400 font-semibold">Synced</span>
+                    {% else %}
+                        <a href="{% url 'calendar_sync:connect' %}" class="text-indigo-400 font-semibold hover:underline">Link Calendar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not has_calendar_connected %}
+    <div class="p-4 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-300 text-xs flex justify-between items-center gap-3">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Google Calendar is not connected. Please connect your account from Settings.</span>
+        </div>
+        <a href="{% url 'calendar_sync:connect' %}" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition text-center text-xs">Link Calendar</a>
+    </div>
+    {% endif %}
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left 2 Columns: Chronological Appointments schedule -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold font-outfit text-black flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Today's Appointment Schedule
+                    </h2>
+                    <span class="text-xs text-slate-500 font-mono">{{ today_bookings.count }} Appointments today</span>
+                </div>
+                
+                {% if today_bookings %}
+                    <div class="grid gap-4">
+                        {% for appt in today_bookings %}
+                            <div class="glass-card p-5 rounded-2xl border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-white/10 transition">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500 font-mono text-[9px] uppercase tracking-wider block">Ref: {{ appt.reference_id }}</span>
+                                    </div>
+                                    <h3 class="text-base font-bold text-black font-outfit">Patient: {{ appt.patient.get_full_name|default:appt.patient.username }}</h3>
+                                    <div class="flex items-center gap-2 pt-1 text-slate-500 text-xs font-semibold">
+                                        <span class="text-indigo-400">{{ appt.slot.start_datetime|date:"H:i" }} - {{ appt.slot.end_datetime|date:"H:i" }}</span>
+                                        <span>&bull;</span>
+                                        <span>Duration: 30 minutes</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+                                    <!-- Dynamic status badging matching state machine -->
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                                        {% if appt.slot.status == 'BOOKED' %}bg-emerald-500/10 text-emerald-300 border border-emerald-500/20
+                                        {% elif appt.slot.status == 'IN_CONSULTATION' %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/20
+                                        {% elif appt.slot.status == 'COMPLETED' %}bg-blue-500/10 text-blue-300 border border-blue-500/20
+                                        {% elif appt.slot.status == 'CANCELLED' %}bg-rose-500/10 text-rose-300 border border-rose-500/20
+                                        {% else %}bg-amber-500/10 text-amber-300 border border-amber-500/20{% endif %}">
+                                        {{ appt.slot.get_status_display }}
+                                    </span>
+                                    
+                                    <button onclick="openAppointmentDrawer('{{ appt.id }}')" class="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-slate-200 hover:bg-white/10 transition">
+                                        Appointment Details
+                                    </button>
+                                    
+                                    {% if appt.slot.status == 'BOOKED' %}
+                                        <a href="{% url 'appointments:start_consultation' appt.id %}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-md shadow-indigo-600/20">
+                                            Open Consultation
+                                        </a>
+                                    {% elif appt.slot.status == 'IN_CONSULTATION' %}
+                                        <a href="{% url 'medical_records:create_record' appt.id %}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-md shadow-indigo-600/20">
+                                            Write EMR Notes
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="glass-card p-8 rounded-2xl border-white/5 text-center text-xs text-slate-500">
+                        No appointments scheduled for today.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Section 2: All Appointments Logs -->
+            <div class="space-y-4">
+                <h2 class="text-lg font-bold font-outfit text-black flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Appointment Timeline Log
+                </h2>
+                
+                {% if all_bookings %}
+                    <div class="glass-card rounded-2xl border border-white/5 overflow-hidden">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-white/5 text-slate-500 font-semibold border-b border-white/5 uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-4">Reference</th>
+                                    <th class="p-4">Patient</th>
+                                    <th class="p-4">Date & Time</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 text-slate-300">
+                                {% for appt in all_bookings %}
+                                    <tr class="hover:bg-white/5 transition">
+                                        <td class="p-4 font-mono text-[10px] text-slate-500">{{ appt.reference_id }}</td>
+                                        <td class="p-4 font-semibold text-slate-500">{{ appt.patient.get_full_name }}</td>
+                                        <td class="p-4">{{ appt.slot.start_datetime|date:"Y-m-d H:i" }}</td>
+                                        <td class="p-4">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold 
+                                                {% if appt.slot.status == 'BOOKED' %}bg-emerald-500/10 text-emerald-300
+                                                {% elif appt.slot.status == 'IN_CONSULTATION' %}bg-indigo-500/10 text-indigo-300
+                                                {% elif appt.slot.status == 'COMPLETED' %}bg-blue-500/10 text-blue-300
+                                                {% elif appt.slot.status == 'CANCELLED' %}bg-rose-500/10 text-rose-300
+                                                {% else %}bg-amber-500/10 text-amber-300{% endif %}">
+                                                {{ appt.slot.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-right">
+                                            <button onclick="openAppointmentDrawer('{{ appt.id }}')" class="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:bg-white/10 transition">
+                                                Logs
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="glass-card p-6 rounded-2xl border-white/5 text-center text-xs text-slate-500">
+                        No historical appointments found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Schedule Configurations & Reviews -->
+        <div class="space-y-6">
+            
+            <!-- Working Hours config summary -->
+            <div class="glass-card p-6 rounded-2xl border-white/10 space-y-4">
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                    <h3 class="text-sm font-bold text-black uppercase tracking-wider font-outfit">My Work Schedule</h3>
+                    <a href="{% url 'doctors:configure_working_hours' %}" class="px-2.5 py-1 text-[10px] font-bold text-indigo-400 border border-indigo-500/20 bg-indigo-500/10 rounded-lg hover:bg-indigo-500/20 hover:text-white transition">Configure</a>
+                </div>
+                
+                <div class="space-y-2.5 text-xs">
+                    {% for wh in working_hours %}
+                        <div class="flex justify-between py-1.5 border-b border-white/5 text-slate-300">
+                            <span class="font-semibold text-slate-500">
+                                {% if wh.day_of_week == 0 %}Monday{% elif wh.day_of_week == 1 %}Tuesday{% elif wh.day_of_week == 2 %}Wednesday{% elif wh.day_of_week == 3 %}Thursday{% elif wh.day_of_week == 4 %}Friday{% elif wh.day_of_week == 5 %}Saturday{% else %}Sunday{% endif %}
+                            </span>
+                            <span>{{ wh.start_time|time:"H:i" }} - {{ wh.end_time|time:"H:i" }} (slot: {{ wh.slot_duration_minutes }}m)</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-xs text-slate-500">No working hours configured yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Leave periods -->
+            <div class="glass-card p-6 rounded-2xl border-white/10 space-y-4">
+                <h3 class="text-sm font-bold text-black uppercase tracking-wider font-outfit border-b border-white/5 pb-2">Leaves / Time-Off</h3>
+                
+                <div class="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                    {% for leave in leaves %}
+                        <div class="bg-white/5 border border-white/5 p-3 rounded-lg text-xs space-y-1">
+                            <div class="flex justify-between font-semibold text-slate-200">
+                                <span>{{ leave.start_date }} to {{ leave.end_date }}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500 italic">"{{ leave.reason }}"</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-xs text-slate-500 text-center py-2">No active leave periods registered.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Patient Reviews List -->
+            <div class="glass-card p-6 rounded-2xl border-white/10 space-y-4">
+                <h3 class="text-sm font-bold text-black uppercase tracking-wider font-outfit border-b border-white/5 pb-2">Patient Feedback</h3>
+                
+                <div class="space-y-4 max-h-[280px] overflow-y-auto pr-1">
+                    {% for rev in reviews %}
+                        <div class="border-b border-white/5 pb-3 space-y-1.5 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 font-semibold">{{ rev.patient.get_full_name }}</span>
+                                <span class="text-amber-400">
+                                    {% if rev.rating == 5 %}⭐⭐⭐⭐⭐{% elif rev.rating == 4 %}⭐⭐⭐⭐{% elif rev.rating == 3 %}⭐⭐⭐{% elif rev.rating == 2 %}⭐⭐{% else %}⭐{% endif %}
+                                </span>
+                            </div>
+                            <p class="italic text-slate-500">"{{ rev.comment }}"</p>
+                            <span class="text-[10px] text-slate-600 block">{{ rev.created_at|date:"Y-m-d" }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-xs text-slate-500 text-center py-4">No review feedback received yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

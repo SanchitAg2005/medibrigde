@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Leaves Dr. {{ doctor.get_full_name }} - Admin Console{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12 w-full space-y-6">
+    <!-- Back Button -->
+    <a href="{% url 'admin_panel:doctor_detail' doctor.pk %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-emerald-600 transition">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg> Back to Profile
+    </a>
+
+    <div class="grid md:grid-cols-3 gap-8">
+        <!-- Add Leave Form -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4 h-fit">
+            <h3 class="text-sm font-bold font-outfit text-slate-900 uppercase tracking-wider border-b border-zinc-100 pb-2">Add Leave Period</h3>
+            <form method="POST" class="space-y-4 text-xs">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                
+                <div>
+                    <label class="block text-slate-500 font-semibold mb-1">Start Date</label>
+                    <input type="date" name="start_date" required class="w-full px-3 py-2 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-500 font-semibold mb-1">End Date</label>
+                    <input type="date" name="end_date" required class="w-full px-3 py-2 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-500 font-semibold mb-1">Reason / Notes</label>
+                    <textarea name="reason" placeholder="Vacation, conference, personal leave..." class="w-full px-3 py-2 border border-zinc-200 rounded focus:ring-emerald-500 text-slate-800" rows="3"></textarea>
+                </div>
+                
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[10px] text-amber-700 leading-normal">
+                    <strong>Note:</strong> Adding a leave automatically deletes all unbooked AVAILABLE slots for this doctor during this time period.
+                </div>
+                
+                <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-lg transition">Apply Leave</button>
+            </form>
+        </div>
+
+        <!-- Leaves List -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200 md:col-span-2 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold font-outfit text-slate-900 uppercase tracking-wider border-b border-zinc-100 pb-2">Scheduled Leave Periods</h3>
+            {% if leaves %}
+                <div class="space-y-3">
+                    {% for leave in leaves %}
+                        <div class="p-4 rounded-xl bg-slate-50 border border-zinc-200 flex justify-between items-start text-xs">
+                            <div class="space-y-1">
+                                <span class="font-bold text-slate-800 block">{{ leave.start_date }} to {{ leave.end_date }}</span>
+                                <span class="text-slate-500 font-light block italic">"{{ leave.reason|default:'No reason provided.' }}"</span>
+                            </div>
+                            
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="leave_id" value="{{ leave.id }}">
+                                <button type="submit" onclick="return confirm('Remove this leave period?')" class="text-rose-600 hover:text-rose-700 font-bold">Delete</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-xs text-slate-400 font-light py-4">No leave periods registered for this doctor.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

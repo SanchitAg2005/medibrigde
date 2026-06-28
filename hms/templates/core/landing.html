@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+
+{% block title %}MediBridge Medical Center - Smart Hospital Management System{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Green-and-white theme overrides for landing page only */
+    body {
+        background: radial-gradient(circle at top center, #eefdf5 0%, #ffffff 100%) !important;
+        background-attachment: fixed !important;
+        color: #1e293b !important; /* slate-800 */
+    }
+    
+    header {
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.12) !important; /* border-emerald-500/12 */
+    }
+    
+    header span, header a {
+        color: #334155 !important; /* slate-700 */
+    }
+    
+    header a:hover {
+        color: #059669 !important; /* emerald-600 */
+    }
+    
+    header .bg-indigo-600 {
+        background-color: #059669 !important; /* emerald-600 */
+        box-shadow: 0 4px 14px 0 rgba(5, 150, 105, 0.25) !important;
+    }
+    
+    header .bg-indigo-600:hover {
+        background-color: #047857 !important; /* emerald-700 */
+    }
+    
+    footer {
+        display: none !important; /* Hide base footer, we will render a dedicated premium landing page footer */
+    }
+
+    .feature-card {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(16, 185, 129, 0.08);
+        box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-4px);
+        background: #ffffff;
+        border-color: rgba(16, 185, 129, 0.2);
+        box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.12);
+    }
+
+    .hero-gradient-text {
+        background: linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .cta-primary {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);
+    }
+
+    .cta-primary:hover {
+        background: linear-gradient(135deg, #047857 0%, #059669 100%);
+        box-shadow: 0 15px 30px -5px rgba(5, 150, 105, 0.4);
+    }
+
+    .cta-secondary {
+        background: #ffffff;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #047857;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    .cta-secondary:hover {
+        background: #f0fdf4;
+        border-color: #059669;
+        color: #047857;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-grow w-full space-y-24 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center">
+    
+    <!-- Hero Section -->
+    <div class="text-center max-w-4xl space-y-6 pt-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-xs font-semibold text-emerald-800 font-outfit uppercase tracking-wider">
+            🏥 Premium Hospital Operations
+        </div>
+        
+        <h1 class="text-4xl sm:text-7xl font-extrabold tracking-tight font-outfit text-slate-900 leading-none">
+            MediBridge Medical Center <br>
+            <span class="hero-gradient-text">
+                Smart Hospital Management
+            </span>
+        </h1>
+        
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed font-light">
+            Modern healthcare management designed for hospitals, doctors, and patients. Secure appointments, digital medical records, seamless scheduling, and integrated healthcare workflows.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6 max-w-md mx-auto">
+            <a href="{% url 'login' %}" class="w-full sm:flex-1 py-3.5 cta-primary text-white font-bold rounded-xl transition text-center text-sm">
+                Log In to Portal
+            </a>
+            <a href="{% url 'signup' %}" class="w-full sm:flex-1 py-3.5 cta-secondary font-bold rounded-xl transition text-center text-sm">
+                Create Account
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="w-full max-w-5xl bg-white/60 backdrop-blur-md border border-emerald-500/10 rounded-3xl p-8 sm:p-12 shadow-xl shadow-emerald-500/5">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-y lg:divide-y-0 lg:divide-x divide-emerald-500/10">
+            <div class="pt-6 lg:pt-0">
+                <span class="text-4xl sm:text-5xl font-extrabold font-outfit text-emerald-600 block mb-1">{{ doctor_count }}</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Active Doctors</span>
+            </div>
+            <div class="pt-6 lg:pt-0">
+                <span class="text-4xl sm:text-5xl font-extrabold font-outfit text-emerald-600 block mb-1">{{ patient_count }}+</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Registered Patients</span>
+            </div>
+            <div class="pt-6 lg:pt-0">
+                <span class="text-4xl sm:text-5xl font-extrabold font-outfit text-emerald-600 block mb-1">{{ appointment_count }}+</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Appointments Booked</span>
+            </div>
+            <div class="pt-6 lg:pt-0">
+                <span class="text-4xl sm:text-5xl font-extrabold font-outfit text-emerald-600 block mb-1">{{ record_count }}+</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Medical Records</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Section -->
+    <div class="w-full max-w-6xl space-y-12">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+            <h2 class="text-3xl font-extrabold font-outfit text-slate-900 tracking-tight">Core Platform Capabilities</h2>
+            <p class="text-sm text-slate-500 leading-normal font-light">MediBridge is equipped with enterprise clinical tools that secure data and automate hospital workloads.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- 1. Appointment Scheduling -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Appointment Scheduling</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Pessimistic transaction lock slot bookings preventing double-allocations.</p>
+                </div>
+            </div>
+
+            <!-- 2. Electronic Medical Records -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Electronic Medical Records</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Digital prescriptions, symptoms logs, diagnoses, and follow-ups timeline.</p>
+                </div>
+            </div>
+
+            <!-- 3. Google Calendar Integration -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Google Calendar Integration</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Stateless PKCE authentication workflow automatically synchronizing calendar events.</p>
+                </div>
+            </div>
+
+            <!-- 4. Doctor Verification Workflow -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Doctor Verification Workflow</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">System-managed admin checks for medical licenses and degrees certificates.</p>
+                </div>
+            </div>
+
+            <!-- 5. Secure Patient Portal -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Secure Patient Portal</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Confidential patient dashboards showing timelines, prescriptions, and ratings.</p>
+                </div>
+            </div>
+
+            <!-- 6. Hospital Administration -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Hospital Administration</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Real-time health monitoring of database, SMTP service, and workers status.</p>
+                </div>
+            </div>
+
+            <!-- 7. Medical Report Management -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Report Management</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Persistent container volume storage for uploads, X-Rays, and prescriptions.</p>
+                </div>
+            </div>
+
+            <!-- 8. Email Notifications -->
+            <div class="feature-card p-6 rounded-2xl space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l8-5.333a2 2 0 012.22 0l8 5.333A2 2 0 0121 10.07V19a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10l9 6 9-6" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-slate-900 font-outfit">Email Notifications</h3>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-light">Serverless endpoints calling backoff retry loops for email notifications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Choose MediBridge Section -->
+    <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-white/40 border border-emerald-500/5 rounded-3xl p-8 sm:p-12">
+        <div class="space-y-4">
+            <h2 class="text-3xl font-extrabold font-outfit text-slate-900 tracking-tight leading-tight">Modern Digital Infrastructure for Safe Clinical Operations</h2>
+            <p class="text-sm text-slate-500 leading-relaxed font-light">MediBridge incorporates modern standard patterns into clinical practice, ensuring hospital schedules and patient records stay synchronized, secure, and always accessible.</p>
+            <div class="pt-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold shrink-0">✓</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-900">Hospital-Grade Reliability</h4>
+                        <p class="text-xs text-slate-500">Atomic transactions protect patient allocation slots.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-slate-700 font-medium">
+            <div class="flex items-center gap-3 border border-emerald-500/10 bg-white/50 p-4 rounded-xl">
+                <span class="text-emerald-600 font-extrabold text-sm">✓</span>
+                <span>Secure Authentication</span>
+            </div>
+            <div class="flex items-center gap-3 border border-emerald-500/10 bg-white/50 p-4 rounded-xl">
+                <span class="text-emerald-600 font-extrabold text-sm">✓</span>
+                <span>Hospital-grade Workflow</span>
+            </div>
+            <div class="flex items-center gap-3 border border-emerald-500/10 bg-white/50 p-4 rounded-xl">
+                <span class="text-emerald-600 font-extrabold text-sm">✓</span>
+                <span>Fast Appointment Booking</span>
+            </div>
+            <div class="flex items-center gap-3 border border-emerald-500/10 bg-white/50 p-4 rounded-xl">
+                <span class="text-emerald-600 font-extrabold text-sm">✓</span>
+                <span>Digital Medical Records</span>
+            </div>
+            <div class="flex items-center gap-3 border border-emerald-500/10 bg-white/50 p-4 rounded-xl">
+                <span class="text-emerald-600 font-extrabold text-sm">✓</span>
+                <span>Modern Responsive Design</span>
+            </div>
+            <div class="flex items-center gap-3 border border-emerald-500/10 bg-white/50 p-4 rounded-xl">
+                <span class="text-emerald-600 font-extrabold text-sm">✓</span>
+                <span>Google Calendar Sync</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collapsible Developer Section (Only visible when DEBUG=True) -->
+    {% if debug_mode %}
+    <div class="w-full max-w-4xl border-t border-emerald-500/10 pt-12">
+        <details class="w-full bg-emerald-500/5 border border-emerald-500/20 rounded-2xl overflow-hidden p-6 cursor-pointer group">
+            <summary class="font-outfit font-bold text-sm text-emerald-800 select-none flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Development Mode: Auto-Seeded Demo Credentials</span>
+                </div>
+                <svg class="w-4 h-4 text-emerald-700 transform group-open:rotate-180 transition shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            
+            <div class="mt-6 grid sm:grid-cols-3 gap-6 cursor-default border-t border-emerald-500/10 pt-4">
+                <!-- Patient Demo Card -->
+                <div class="bg-white/70 border border-emerald-500/10 p-5 rounded-xl flex flex-col justify-between hover:border-emerald-500/20 transition">
+                    <div class="space-y-1">
+                        <span class="text-emerald-600 font-bold font-outfit text-xs uppercase tracking-wider block">Patient Demo</span>
+                        <h3 class="font-bold text-sm text-slate-800">David Miller</h3>
+                        <p class="text-[10px] text-slate-500 leading-normal">Book slot schedules, upload medical reports, configure ratings and reviews, sync Google Calendar.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-500/10 space-y-1 text-[11px] font-mono text-slate-600">
+                        <div class="flex justify-between flex-wrap"><span class="text-slate-400">Email:</span> <span>demo_patient@example.com</span></div>
+                        <div class="flex justify-between flex-wrap"><span class="text-slate-400">Password:</span> <span>hms_patient123</span></div>
+                    </div>
+                </div>
+                
+                <!-- Doctor Demo Card -->
+                <div class="bg-white/70 border border-emerald-500/10 p-5 rounded-xl flex flex-col justify-between hover:border-emerald-500/20 transition">
+                    <div class="space-y-1">
+                        <span class="text-emerald-600 font-bold font-outfit text-xs uppercase tracking-wider block">Doctor Demo</span>
+                        <h3 class="font-bold text-sm text-slate-800">Dr. Robert Chen</h3>
+                        <p class="text-[10px] text-slate-500 leading-normal">Configure practice hours, generate slots, view logs and prescriptions, approve calendar sync status.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-500/10 space-y-1 text-[11px] font-mono text-slate-600">
+                        <div class="flex justify-between flex-wrap"><span class="text-slate-400">Email:</span> <span>demo_doctor@hospital.local</span></div>
+                        <div class="flex justify-between flex-wrap"><span class="text-slate-400">Password:</span> <span>hms_doctor123</span></div>
+                    </div>
+                </div>
+                
+                <!-- Admin Demo Card -->
+                <div class="bg-white/70 border border-emerald-500/10 p-5 rounded-xl flex flex-col justify-between hover:border-emerald-500/20 transition">
+                    <div class="space-y-1">
+                        <span class="text-emerald-600 font-bold font-outfit text-xs uppercase tracking-wider block">Admin Demo</span>
+                        <h3 class="font-bold text-sm text-slate-800">System Admin</h3>
+                        <p class="text-[10px] text-slate-500 leading-normal">Monitor server components health, verify credentials uploads, audit system logs, override schedules.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-500/10 space-y-1 text-[11px] font-mono text-slate-600">
+                        <div class="flex justify-between flex-wrap"><span class="text-slate-400">Email:</span> <span>demo_admin@hospital.local</span></div>
+                        <div class="flex justify-between flex-wrap"><span class="text-slate-400">Password:</span> <span>hms_admin123</span></div>
+                    </div>
+                </div>
+            </div>
+        </details>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Premium Landing Page Footer -->
+<footer class="border-t border-emerald-500/10 bg-white/70 backdrop-blur-md py-12 text-xs text-slate-600 w-full mt-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="space-y-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-sm text-white font-outfit shadow shadow-emerald-600/20">
+                    M
+                </div>
+                <span class="font-outfit font-semibold text-base text-slate-800 tracking-tight">
+                    MediBridge
+                </span>
+            </div>
+            <p class="text-[11px] text-slate-500 leading-relaxed font-light">
+                Enterprise healthcare workflows, secure doctor availability scheduling, and digital EMR tracking designed for local healthcare centers.
+            </p>
+        </div>
+        
+        <div class="space-y-2">
+            <h4 class="font-bold text-slate-800 font-outfit uppercase tracking-widest text-[9px]">Contact Information</h4>
+            <div class="space-y-1 text-[11px] text-slate-500 font-light">
+                <p>Phone: <strong>+1 (555) 019-2831</strong></p>
+                <p>Email: <strong>contact@medibridge.hospital.local</strong></p>
+                <p>Address: <strong>100 Medical Center Parkway, Suite 400, Aura City</strong></p>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            <h4 class="font-bold text-slate-800 font-outfit uppercase tracking-widest text-[9px]">Compliance & Terms</h4>
+            <div class="flex flex-col gap-1 text-[11px] text-slate-500 font-light">
+                <a href="#" class="hover:text-emerald-600 transition">Privacy Policy & HIPAA Agreement</a>
+                <a href="#" class="hover:text-emerald-600 transition">Terms of Service</a>
+                <p class="pt-2 text-[10px] text-slate-400">&copy; 2026 MediBridge Medical Center. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+

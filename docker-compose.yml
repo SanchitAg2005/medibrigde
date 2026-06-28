@@ -1,0 +1,148 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: hms_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - medibridge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: hms/Dockerfile
+    container_name: hms_web
+    restart: unless-stopped
+    command: sh -c "python hms/manage.py migrate && python hms/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      # Mount Django media directory to persist uploaded reports and credentials
+      - django_media:/app/hms/media
+      # Mount Django staticfiles directory for collectstatic usage in production
+      - django_static:/app/hms/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - medibridge
+    depends_on:
+      db:
+        condition: service_healthy
+      serverless:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  worker:
+    build:
+      context: .
+      dockerfile: hms/Dockerfile
+    container_name: hms_worker
+    restart: unless-stopped
+    command: python hms/manage.py process_tasks
+    volumes:
+      - .:/app
+      # Mount Django media directory to access uploaded files
+      - django_media:/app/hms/media
+    env_file:
+      - .env
+    networks:
+      - medibridge
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - |
+          import os, sys
+          found = False
+          for p in os.listdir('/proc'):
+              if p.isdigit() and int(p) != os.getpid():
+                  try:
+                      with open(f'/proc/{p}/cmdline', 'rb') as f:
+                          if b'process_tasks' in f.read():
+                              found = True
+                              break
+                  except Exception:
+                      pass
+          sys.exit(0 if found else 1)
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  serverless:
+    image: nikolaik/python-nodejs:python3.11-nodejs20-slim
+    container_name: hms_email_service
+    restart: unless-stopped
+    working_dir: /app/email-service
+    volumes:
+      - .:/app
+      # Use an anonymous volume to prevent file locking issues on Windows host during npm install
+      - /app/email-service/node_modules
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npx serverless offline --host 0.0.0.0"
+    env_file:
+      - .env
+    networks:
+      - medibridge
+    depends_on:
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/dev/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: hms_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - medibridge
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025/"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  medibridge:
+    name: medibridge
+
+volumes:
+  # Persistent storage for PostgreSQL database data files
+  postgres_data:
+  
+  # Persistent storage for medical reports, doctor credentials, and prescription files
+  django_media:
+  
+  # Persistent storage for collected static assets if collectstatic is run later in deployment
+  django_static:

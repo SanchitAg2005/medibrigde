@@ -1,0 +1,31 @@
+service: hms-email-service
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: dev
+  region: us-east-1
+  environment:
+    SMTP_HOST: ${env:SMTP_HOST, "mailpit"}
+    SMTP_PORT: ${env:SMTP_PORT, "1025"}
+    SMTP_USER: ${env:SMTP_USER, ""}
+    SMTP_PASSWORD: ${env:SMTP_PASSWORD, ""}
+    EMAIL_FROM: ${env:EMAIL_FROM, "noreply@hospital.local"}
+
+plugins:
+  - serverless-offline
+
+functions:
+  sendEmail:
+    handler: handler.send_email
+    events:
+      - http:
+          path: send-email
+          method: post
+  healthCheck:
+    handler: handler.health_check
+    events:
+      - http:
+          path: health
+          method: get
+

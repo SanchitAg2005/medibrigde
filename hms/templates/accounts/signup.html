@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - {{ hospital_config.name }}{% endblock %}
+
+{% block content %}
+<div class="flex-grow flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div class="max-w-xl w-full space-y-8 bg-white border border-zinc-200 shadow-sm p-8 rounded-2xl">
+        <div class="text-center">
+            <div class="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-lg text-white font-outfit shadow shadow-emerald-600/25 mx-auto mb-4">
+                M
+            </div>
+            <h2 class="mt-2 text-3xl font-extrabold tracking-tight font-outfit text-slate-900">
+                Create Account
+            </h2>
+            <p class="mt-2 text-sm text-slate-500">
+                Register as a patient to schedule care, or apply as a doctor.
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="space-y-4">
+                <!-- Basic Fields -->
+                <div>
+                    <label for="id_full_name" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Full Name</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        <span class="text-xs text-rose-600 mt-1 block">{{ form.full_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_email" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <span class="text-xs text-rose-600 mt-1 block">{{ form.email.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Password</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <span class="text-xs text-rose-600 mt-1 block">{{ form.password.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="id_confirm_password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Confirm Password</label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <span class="text-xs text-rose-600 mt-1 block">{{ form.confirm_password.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="role-select" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Account Role</label>
+                    {{ form.role }}
+                    {% if form.role.errors %}
+                        <span class="text-xs text-rose-600 mt-1 block">{{ form.role.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Doctor specific Section (Hidden by default) -->
+                <div id="doctor-section" class="hidden border-t border-zinc-200 pt-6 mt-6 space-y-4">
+                    <h3 class="text-sm font-bold text-emerald-700 font-outfit uppercase tracking-wider mb-2">Doctor Professional Credentials</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_specialization" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Specialization</label>
+                            {{ form.specialization }}
+                            {% if form.specialization.errors %}
+                                <span class="text-xs text-rose-600 mt-1 block">{{ form.specialization.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="id_experience_years" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Years of Experience</label>
+                            {{ form.experience_years }}
+                            {% if form.experience_years.errors %}
+                                <span class="text-xs text-rose-600 mt-1 block">{{ form.experience_years.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="id_languages" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Spoken Languages</label>
+                        {{ form.languages }}
+                        {% if form.languages.errors %}
+                            <span class="text-xs text-rose-600 mt-1 block">{{ form.languages.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="id_bio" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Short Bio</label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                            <span class="text-xs text-rose-600 mt-1 block">{{ form.bio.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <span class="text-xs font-bold text-slate-600 block uppercase tracking-wider">Required Verification Attachments</span>
+                        
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Government-Issued Photo ID (PDF/Image)</label>
+                            {{ form.gov_id_file }}
+                            {% if form.gov_id_file.errors %}
+                                <span class="text-xs text-rose-600 mt-1 block">{{ form.gov_id_file.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Medical License / Board Certificate (PDF/Image)</label>
+                            {{ form.medical_license_file }}
+                            {% if form.medical_license_file.errors %}
+                                <span class="text-xs text-rose-600 mt-1 block">{{ form.medical_license_file.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Medical Degree Certificate (PDF/Image)</label>
+                            {{ form.degree_certificate_file }}
+                            {% if form.degree_certificate_file.errors %}
+                                <span class="text-xs text-rose-600 mt-1 block">{{ form.degree_certificate_file.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" 
+                        class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition shadow-md shadow-emerald-600/25 glow-button">
+                    Register Account
+                </button>
+            </div>
+            
+            <div class="text-center pt-2">
+                <span class="text-xs text-slate-500">Already have an account? </span>
+                <a href="{% url 'login' %}" class="text-xs text-emerald-600 hover:text-emerald-700 hover:underline font-semibold">Log in here</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const roleSelect = document.getElementById("role-select");
+        const doctorSection = document.getElementById("doctor-section");
+
+        function toggleDoctorFields() {
+            if (roleSelect.value === "DOCTOR") {
+                doctorSection.classList.remove("hidden");
+            } else {
+                doctorSection.classList.add("hidden");
+            }
+        }
+
+        roleSelect.addEventListener("change", toggleDoctorFields);
+        toggleDoctorFields();  // Initial check
+    });
+</script>
+{% endblock %}

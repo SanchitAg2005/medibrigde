@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - {{ hospital_config.name }} - Smart Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 flex-grow">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-6">
+        <div>
+            <h1 class="text-3xl font-extrabold font-outfit text-slate-900">System Administration</h1>
+            <p class="text-sm text-slate-500 font-light">Monitor doctor registrations, lifecycle status, system health metrics, and security audit logs.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'admin_panel:edit_hospital_config' %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-lg transition shadow-sm">
+                Edit Hospital Config
+            </a>
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-xs font-semibold text-emerald-800 font-outfit uppercase">
+                Admin Active Console
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: System Health Dashboard -->
+    <div class="space-y-4">
+        <h2 class="text-lg font-bold font-outfit text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            System Health status
+        </h2>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Django -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Django Web</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    {{ system_health.django }}
+                </span>
+            </div>
+            <!-- Postgres -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PostgreSQL</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {% if system_health.postgres == 'Healthy' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-rose-100 text-rose-800 border border-rose-200{% endif %}">
+                    {{ system_health.postgres }}
+                </span>
+            </div>
+            <!-- Mailpit -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Mailpit SMTP</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {% if system_health.mailpit == 'Healthy' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-rose-100 text-rose-800 border border-rose-200{% endif %}">
+                    {{ system_health.mailpit }}
+                </span>
+            </div>
+            <!-- Google Sync config -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Google Sync</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {% if system_health.google_calendar == 'Configured' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-slate-100 text-slate-500 border border-zinc-200{% endif %}">
+                    {{ system_health.google_calendar }}
+                </span>
+            </div>
+            <!-- Serverless email -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Serverless Email</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {% if system_health.serverless_email == 'Healthy' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif system_health.serverless_email == 'Degraded' %}bg-amber-100 text-amber-800 border border-amber-200{% else %}bg-rose-100 text-rose-800 border border-rose-200{% endif %}">
+                    {{ system_health.serverless_email }}
+                </span>
+            </div>
+            <!-- Async Background Worker -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Async Worker</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {% if system_health.worker.status == 'Active' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-slate-100 text-slate-500 border border-zinc-200{% endif %}">
+                    {{ system_health.worker.status }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Worker Sub-stats Details -->
+        <div class="bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs font-light">
+            <div>
+                <span class="text-slate-500 block">Pending Tasks</span>
+                <strong class="text-slate-800 text-base font-outfit font-semibold">{{ system_health.worker.pending }}</strong>
+            </div>
+            <div>
+                <span class="text-slate-500 block">Processed Tasks</span>
+                <strong class="text-emerald-600 text-base font-outfit font-semibold">{{ system_health.worker.processed }}</strong>
+            </div>
+            <div>
+                <span class="text-slate-500 block">Failed Tasks</span>
+                <strong class="text-rose-600 text-base font-outfit font-semibold">{{ system_health.worker.failed }}</strong>
+            </div>
+            <div>
+                <span class="text-slate-500 block">Total Retries</span>
+                <strong class="text-amber-600 text-base font-outfit font-semibold">{{ system_health.worker.retries }}</strong>
+            </div>
+            <div>
+                <span class="text-slate-500 block">System Logs Cache</span>
+                <strong class="text-slate-700 font-mono font-medium">SQLite / DB</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Doctor Verification pipeline -->
+    <div class="space-y-6">
+        <h2 class="text-xl font-bold font-outfit text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Doctor Verification Approvals Pipeline
+        </h2>
+        
+        {% if pending_doctors %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for doctor in pending_doctors %}
+                    <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between hover:border-emerald-500/20 transition">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg text-slate-900">Dr. {{ doctor.get_full_name|default:doctor.username }}</h3>
+                                    <span class="text-xs text-emerald-600 font-semibold uppercase tracking-wider block mt-1">{{ doctor.doctor_profile.specialization }}</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded bg-amber-100 border border-amber-200 text-[10px] font-semibold text-amber-800 uppercase">Pending</span>
+                            </div>
+                            
+                            <div class="space-y-1.5 text-xs text-slate-500 font-light pt-2 border-t border-zinc-100">
+                                <div><strong class="text-slate-700 font-semibold">Specialty:</strong> {{ doctor.doctor_profile.specialization }}</div>
+                                <div><strong class="text-slate-700 font-semibold">Experience:</strong> {{ doctor.doctor_profile.experience_years }} Years</div>
+                                <div><strong class="text-slate-700 font-semibold">Email:</strong> {{ doctor.email }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 pt-4 border-t border-zinc-100 flex gap-2">
+                            <a href="{% url 'admin_panel:doctor_detail' doctor.pk %}" class="flex-1 text-center py-2 px-3 rounded-lg border border-zinc-200 text-xs font-semibold text-slate-600 hover:bg-zinc-50 transition">
+                                Review Docs
+                            </a>
+                            <a href="{% url 'admin_panel:approve_doctor' doctor.pk %}" class="flex-1 text-center py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition shadow-sm">
+                                Approve
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white p-8 rounded-2xl border border-zinc-200 text-center text-slate-500 text-sm shadow-sm font-light">
+                No doctor registrations are pending verification.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Section 3: Lists of All Doctors by Lifecycle States -->
+    <div class="space-y-6">
+        <h2 class="text-xl font-bold font-outfit text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Hospital Medical Staff Directory
+        </h2>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Active/Approved Doctors -->
+            <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold font-outfit text-slate-900 border-b border-zinc-100 pb-3 uppercase tracking-wider">Approved Staff ({{ approved_doctors|length }})</h3>
+                <div class="divide-y divide-zinc-100 max-h-60 overflow-y-auto pr-2 space-y-3 font-light text-xs">
+                    {% for doc in approved_doctors %}
+                        <div class="flex justify-between items-center py-2">
+                            <div>
+                                <a href="{% url 'admin_panel:doctor_detail' doc.pk %}" class="font-bold text-slate-800 hover:text-emerald-600 block">{{ doc.get_full_name|default:doc.username }}</a>
+                                <span class="text-slate-500 text-[10px]">{{ doc.doctor_profile.specialization }}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold uppercase">Active</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-400 py-2">No active doctors yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Suspended Doctors -->
+            <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold font-outfit text-slate-900 border-b border-zinc-100 pb-3 uppercase tracking-wider">Suspended Staff ({{ suspended_doctors|length }})</h3>
+                <div class="divide-y divide-zinc-100 max-h-60 overflow-y-auto pr-2 space-y-3 font-light text-xs">
+                    {% for doc in suspended_doctors %}
+                        <div class="flex justify-between items-center py-2">
+                            <div>
+                                <a href="{% url 'admin_panel:doctor_detail' doc.pk %}" class="font-bold text-slate-800 hover:text-emerald-600 block">{{ doc.get_full_name|default:doc.username }}</a>
+                                <span class="text-slate-500 text-[10px]">{{ doc.doctor_profile.specialization }}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase">Suspended</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-400 py-2">No suspended doctors.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Removed Doctors -->
+            <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold font-outfit text-slate-900 border-b border-zinc-100 pb-3 uppercase tracking-wider">Removed Staff ({{ removed_doctors|length }})</h3>
+                <div class="divide-y divide-zinc-100 max-h-60 overflow-y-auto pr-2 space-y-3 font-light text-xs">
+                    {% for doc in removed_doctors %}
+                        <div class="flex justify-between items-center py-2">
+                            <div>
+                                <a href="{% url 'admin_panel:doctor_detail' doc.pk %}" class="font-bold text-slate-800 hover:text-emerald-600 block">{{ doc.get_full_name|default:doc.username }}</a>
+                                <span class="text-slate-500 text-[10px]">{{ doc.doctor_profile.specialization }}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[9px] font-bold uppercase">Removed</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-400 py-2">No removed doctors.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Administrative Schedule Overrides Panel -->
+    <div class="space-y-4">
+        <h2 class="text-lg font-bold font-outfit text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            Chronological Appointment Schedule Overrides
+        </h2>
+        
+        {% if all_bookings_admin %}
+            <div class="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-zinc-200 uppercase tracking-wider">
+                        <tr>
+                            <th class="p-4">Ref ID</th>
+                            <th class="p-4">Doctor</th>
+                            <th class="p-4">Patient</th>
+                            <th class="p-4">Appointment Time</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 text-slate-700 font-light">
+                        {% for appt in all_bookings_admin %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-4 font-mono text-[10px] text-slate-500 font-semibold">{{ appt.reference_id }}</td>
+                                <td class="p-4 font-semibold text-slate-800">Dr. {{ appt.slot.doctor.user.get_full_name }}</td>
+                                <td class="p-4">{{ appt.patient.get_full_name|default:appt.patient.email }}</td>
+                                <td class="p-4">{{ appt.slot.start_datetime|date:"Y-m-d H:i" }}</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase 
+                                        {% if appt.slot.status == 'BOOKED' %}bg-blue-100 text-blue-800
+                                        {% elif appt.slot.status == 'IN_CONSULTATION' %}bg-indigo-100 text-indigo-800
+                                        {% elif appt.slot.status == 'COMPLETED' %}bg-emerald-100 text-emerald-800
+                                        {% elif appt.slot.status == 'CANCELLED' %}bg-zinc-100 text-zinc-600
+                                        {% else %}bg-amber-100 text-amber-800{% endif %}">
+                                        {{ appt.slot.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-right flex justify-end gap-2">
+                                    <button onclick="openAppointmentDrawer('{{ appt.id }}')" class="px-2 py-1 rounded border border-zinc-200 text-[10px] font-bold text-slate-600 hover:bg-zinc-50 transition">
+                                        Details
+                                    </button>
+                                    {% if appt.slot.status == 'BOOKED' %}
+                                        <a href="{% url 'appointments:cancel_booking' appt.id %}" class="px-2 py-1 rounded bg-rose-600 hover:bg-rose-700 text-[10px] font-bold text-white transition">
+                                            Cancel
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="bg-white p-6 rounded-2xl border border-zinc-200 text-center text-xs text-slate-500 shadow-sm font-light">
+                No bookings exist in the database for schedule controls.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Audits & Logs Panel -->
+    <div class="grid lg:grid-cols-2 gap-8 border-t border-zinc-200 pt-10">
+        <!-- Background Tasks Log -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+            <div class="flex justify-between items-center border-b border-zinc-100 pb-3">
+                <h3 class="text-md font-bold font-outfit text-slate-900">Background Async Tasks</h3>
+                <span class="text-[10px] text-emerald-800 font-semibold uppercase bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded">Worker Logs</span>
+            </div>
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-2 font-light">
+                {% for task in recent_tasks %}
+                    <div class="p-3 rounded-lg bg-slate-50 border border-zinc-200 text-xs flex justify-between items-start gap-4">
+                        <div class="space-y-1">
+                            <span class="font-bold text-slate-700">{{ task.get_task_type_display }}</span>
+                            <code class="text-[10px] text-slate-400 block">ID: #{{ task.id }}</code>
+                        </div>
+                        <div class="text-right space-y-1">
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase {% if task.status == 'SUCCESS' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif task.status == 'FAILED' %}bg-rose-100 text-rose-800 border border-rose-200{% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
+                                {{ task.status }}
+                            </span>
+                            <span class="text-[9px] text-slate-400 block">{{ task.created_at|date:"H:i:s M d" }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-slate-400 py-2">No background task logs yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Audit Trail -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+            <h3 class="text-md font-bold font-outfit text-slate-900 border-b border-zinc-100 pb-3">Security Audit Trail</h3>
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-2 font-light text-xs">
+                {% for log in recent_audits %}
+                    <div class="p-3 rounded-lg bg-slate-50 border border-zinc-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <strong class="text-emerald-700 font-bold">{{ log.action }}</strong>
+                            <span class="text-[9px] text-slate-400">{{ log.timestamp|date:"H:i:s M d" }}</span>
+                        </div>
+                        <div class="flex justify-between text-slate-500 text-[11px]">
+                            <span>Actor: <strong>{{ log.actor.username|default:"System" }}</strong></span>
+                            <span>IP: {{ log.ip_address|default:"127.0.0.1" }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-slate-400 py-2">No audit log records yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

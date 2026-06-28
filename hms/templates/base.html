@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 text-slate-800">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ hospital_config.name }}{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-outfit: 'Outfit', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        /* Light theme card replacement for glass-card */
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0; /* zinc-200 / slate-200 */
+            box-shadow: 0 4px 12px 0 rgba(15, 23, 42, 0.04);
+            color: #1e293b;
+        }
+
+        .glass-input {
+            background: #ffffff;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            color: #0f172a;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .glass-input:focus {
+            border-color: #059669; /* emerald-600 */
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+            outline: none;
+        }
+        
+        /* Custom animated glowing button */
+        .glow-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .glow-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+            transition: 0.75s;
+        }
+
+        .glow-button:hover::after {
+            left: 125%;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col justify-between">
+
+    <!-- Navbar -->
+    <header class="border-b border-zinc-200 bg-white sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-lg text-white font-outfit shadow shadow-emerald-600/25">
+                    M
+                </div>
+                <span class="font-outfit font-bold text-base text-slate-800 tracking-tight">
+                    {{ hospital_config.name }}
+                </span>
+            </div>
+            
+            <nav class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <span class="text-xs text-slate-500 hidden sm:inline">Signed in as <strong class="text-slate-800">{{ user.username }}</strong></span>
+                    {% if user.role == 'PATIENT' %}
+                        <a href="{% url 'patients:book_appointment' %}" class="text-xs font-semibold text-slate-600 hover:text-emerald-600 transition">Book Appointment</a>
+                    {% endif %}
+                    <a href="{% url 'dashboard' %}" class="text-xs font-semibold text-slate-600 hover:text-emerald-600 transition">Dashboard</a>
+                    <a href="{% url 'logout' %}" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-200 text-slate-700 hover:bg-slate-50 transition">Sign out</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-xs font-semibold text-slate-600 hover:text-emerald-600 transition">Log in</a>
+                    <a href="{% url 'signup' %}" class="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition shadow-sm glow-button">
+                        Register
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col">
+        <!-- Messages Section -->
+        {% if messages %}
+            <div class="max-w-4xl mx-auto px-4 w-full mt-4 space-y-2">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg flex items-center justify-between border {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% else %}bg-blue-55 border-blue-200 text-blue-800{% endif %} text-xs font-medium shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-200 py-6 text-center text-xs text-slate-500 bg-white shadow-inner">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            &copy; 2026 {{ hospital_config.name }}. All rights reserved. Subtitle: {{ hospital_config.working_hours }}
+        </div>
+    </footer>
+
+    <!-- Side Drawer Overlay and Container -->
+    <div id="details-drawer-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeAppointmentDrawer()"></div>
+    <div id="details-drawer" class="fixed top-0 right-0 h-full w-full sm:w-[480px] bg-white border-l border-zinc-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between text-slate-800">
+        <!-- Header -->
+        <div class="p-6 border-b border-zinc-100 flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest font-outfit">Appointment Details</span>
+                <h2 id="drawer-ref-id" class="text-xl font-bold text-slate-900 font-outfit mt-1">APT-XXXX-XXXXXX</h2>
+            </div>
+            <button onclick="closeAppointmentDrawer()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 transition">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Body Content -->
+        <div class="flex-grow p-6 overflow-y-auto space-y-6">
+            <!-- Status Badges Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-50 border border-zinc-200 p-4 rounded-xl shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                    <span id="drawer-status-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1">...</span>
+                </div>
+                <div class="bg-slate-50 border border-zinc-200 p-4 rounded-xl shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Google Sync</span>
+                    <span id="drawer-sync-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1">...</span>
+                </div>
+            </div>
+
+            <!-- Details List -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center py-2 border-b border-zinc-100">
+                    <span class="text-sm text-slate-500 font-light">Patient</span>
+                    <span id="drawer-patient-name" class="text-sm font-semibold text-slate-800">...</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-zinc-100">
+                    <span class="text-sm text-slate-500 font-light">Doctor</span>
+                    <div>
+                        <span id="drawer-doctor-name" class="text-sm font-semibold text-slate-800 block text-right">...</span>
+                        <span id="drawer-specialization" class="text-xs text-slate-400 block text-right">...</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-zinc-100">
+                    <span class="text-sm text-slate-500 font-light">Date</span>
+                    <span id="drawer-date" class="text-sm font-semibold text-slate-800">...</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-zinc-100">
+                    <span class="text-sm text-slate-500 font-light">Time Range</span>
+                    <span id="drawer-time" class="text-sm font-semibold text-slate-800">...</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-zinc-100">
+                    <span class="text-sm text-slate-500 font-light">EMR Status</span>
+                    <span id="drawer-emr-status" class="text-sm font-semibold text-slate-800">...</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-zinc-100">
+                    <span class="text-sm text-slate-500 font-light">Created At</span>
+                    <span id="drawer-created-at" class="text-sm font-semibold text-slate-800">...</span>
+                </div>
+            </div>
+            
+            <!-- Timeline Section -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest font-outfit">Timeline of Events</h3>
+                <div class="border-l-2 border-zinc-200 pl-4 ml-2 space-y-4">
+                    <div class="relative">
+                        <span class="absolute -left-[23px] top-1.5 w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span id="timeline-created-time" class="text-[10px] text-slate-400 block font-mono">...</span>
+                        <span class="text-xs text-slate-600 font-light">Appointment scheduled & notification queued.</span>
+                    </div>
+                    <div id="timeline-sync-event" class="relative hidden">
+                        <span class="absolute -left-[23px] top-1.5 w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span id="timeline-sync-time" class="text-[10px] text-slate-400 block font-mono">...</span>
+                        <span class="text-xs text-slate-600 font-light">Google Calendar synchronized successfully.</span>
+                    </div>
+                    <div id="timeline-emr-event" class="relative hidden">
+                        <span class="absolute -left-[23px] top-1.5 w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span id="timeline-emr-time" class="text-[10px] text-slate-400 block font-mono">...</span>
+                        <span class="text-xs text-slate-600 font-light">Consultation completed, EMR record and prescription written.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div id="drawer-actions-container" class="p-6 border-t border-zinc-100 bg-slate-50 grid grid-cols-1 gap-3">
+            <!-- Buttons injected dynamically -->
+        </div>
+    </div>
+
+    <script>
+        function openAppointmentDrawer(bookingId) {
+            const overlay = document.getElementById('details-drawer-overlay');
+            const drawer = document.getElementById('details-drawer');
+            
+            fetch(`/appointments/detail-json/${bookingId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('drawer-ref-id').innerText = data.reference_id;
+                    document.getElementById('drawer-patient-name').innerText = data.patient_name;
+                    document.getElementById('drawer-doctor-name').innerText = data.doctor_name;
+                    document.getElementById('drawer-specialization').innerText = data.specialization + ' (' + data.hospital_name + ')';
+                    document.getElementById('drawer-date').innerText = data.date;
+                    document.getElementById('drawer-time').innerText = data.start_time + ' - ' + data.end_time;
+                    document.getElementById('drawer-emr-status').innerText = data.emr_status;
+                    document.getElementById('drawer-created-at').innerText = data.created_at;
+                    
+                    const badge = document.getElementById('drawer-status-badge');
+                    badge.innerText = data.status_label;
+                    badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1 ";
+                    if (data.status === 'AVAILABLE') badge.classList.add('bg-zinc-100', 'text-zinc-650', 'border', 'border-zinc-200');
+                    else if (data.status === 'BOOKED') badge.classList.add('bg-blue-100', 'text-blue-800', 'border', 'border-blue-200');
+                    else if (data.status === 'IN_CONSULTATION') badge.classList.add('bg-indigo-100', 'text-indigo-800', 'border', 'border-indigo-200');
+                    else if (data.status === 'COMPLETED') badge.classList.add('bg-emerald-100', 'text-emerald-800', 'border', 'border-emerald-200');
+                    else if (data.status === 'CANCELLED') badge.classList.add('bg-rose-100', 'text-rose-800', 'border', 'border-rose-200');
+                    else if (data.status === 'NO_SHOW') badge.classList.add('bg-amber-100', 'text-amber-800', 'border', 'border-amber-200');
+                    
+                    const syncBadge = document.getElementById('drawer-sync-badge');
+                    syncBadge.innerText = data.google_sync_status;
+                    syncBadge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1 ";
+                    if (data.google_sync_status === 'Synced') syncBadge.classList.add('bg-emerald-100', 'text-emerald-800', 'border', 'border-emerald-200');
+                    else syncBadge.classList.add('bg-slate-100', 'text-slate-500', 'border', 'border-zinc-200');
+
+                    document.getElementById('timeline-created-time').innerText = data.created_at;
+                    
+                    const syncEvent = document.getElementById('timeline-sync-event');
+                    if (data.google_sync_status === 'Synced') {
+                        syncEvent.classList.remove('hidden');
+                        document.getElementById('timeline-sync-time').innerText = data.updated_at;
+                    } else {
+                        syncEvent.classList.add('hidden');
+                    }
+
+                    const emrEvent = document.getElementById('timeline-emr-event');
+                    if (data.emr_status === 'Completed') {
+                        emrEvent.classList.remove('hidden');
+                        document.getElementById('timeline-emr-time').innerText = data.updated_at;
+                    } else {
+                        emrEvent.classList.add('hidden');
+                    }
+
+                    const container = document.getElementById('drawer-actions-container');
+                    container.innerHTML = '';
+                    
+                    if (data.actions.can_cancel) {
+                        container.innerHTML += `<a href="/appointments/cancel/${data.id}/" class="w-full text-center py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition">Cancel Appointment</a>`;
+                    }
+                    if (data.actions.can_start_consultation) {
+                        container.innerHTML += `<a href="/appointments/start-consultation/${data.id}/" class="w-full text-center py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition">Start Consultation</a>`;
+                    }
+                    if (data.actions.can_mark_no_show) {
+                        container.innerHTML += `<a href="/appointments/mark-no-show/${data.id}/" class="w-full text-center py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition">Mark Patient No-Show</a>`;
+                    }
+                    if (data.actions.can_create_emr) {
+                        container.innerHTML += `<a href="/medical-records/create/${data.id}/" class="w-full text-center py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">Create EMR & Prescription</a>`;
+                    }
+                    
+                    if (container.innerHTML === '') {
+                        container.innerHTML = '<span class="text-xs text-slate-400 text-center font-light">No actions available for this appointment status.</span>';
+                    }
+
+                    overlay.classList.remove('pointer-events-none', 'opacity-0');
+                    drawer.classList.remove('translate-x-full');
+                })
+                .catch(err => console.error("Error loading appointment details drawer:", err));
+        }
+
+        function closeAppointmentDrawer() {
+            const overlay = document.getElementById('details-drawer-overlay');
+            const drawer = document.getElementById('details-drawer');
+            overlay.classList.add('pointer-events-none', 'opacity-0');
+            drawer.classList.add('translate-x-full');
+        }
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Dr. {{ doctor.get_full_name|default:doctor.username }} - MediBridge Medical Center{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
+    <!-- Back Button -->
+    <a href="{% url 'admin_panel:dashboard' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-emerald-600 transition">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg> Back to Admin Dashboard
+    </a>
+
+    <!-- Header profile banner -->
+    <div class="bg-white p-8 rounded-2xl border border-zinc-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm">
+        <div class="space-y-2">
+            <div class="flex items-center gap-3">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider
+                    {% if doctor.approval_status == 'APPROVED' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                    {% elif doctor.approval_status == 'SUSPENDED' %}bg-amber-100 text-amber-800 border border-amber-200
+                    {% elif doctor.approval_status == 'REMOVED' %}bg-rose-100 text-rose-800 border border-rose-200
+                    {% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %}">
+                    {{ doctor.get_approval_status_display }}
+                </span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Doctor Status</span>
+            </div>
+            <h1 class="text-3xl font-extrabold font-outfit text-slate-900">Dr. {{ doctor.get_full_name|default:doctor.username }}</h1>
+            <p class="text-sm text-slate-600 font-light">{{ doctor.doctor_profile.specialization }} &bull; {{ hospital_config.name }}</p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+            {% if doctor.approval_status == 'PENDING' %}
+                <a href="{% url 'admin_panel:reject_doctor' doctor.pk %}" class="px-4 py-2 border border-rose-200 text-xs font-semibold text-rose-600 rounded-lg hover:bg-rose-50 transition">Reject Application</a>
+                <a href="{% url 'admin_panel:approve_doctor' doctor.pk %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-lg transition">Approve Registration</a>
+            {% endif %}
+            
+            {% if doctor.approval_status == 'APPROVED' %}
+                <a href="{% url 'admin_panel:suspend_doctor' doctor.pk %}" class="px-4 py-2 border border-amber-300 text-xs font-semibold text-amber-700 rounded-lg hover:bg-amber-50 transition">Suspend Doctor</a>
+            {% elif doctor.approval_status == 'SUSPENDED' %}
+                <a href="{% url 'admin_panel:reactivate_doctor' doctor.pk %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-lg transition">Reactivate Doctor</a>
+            {% endif %}
+            
+            {% if doctor.approval_status != 'REMOVED' %}
+                <a href="{% url 'admin_panel:admin_edit_doctor' doctor.pk %}" class="px-4 py-2 border border-zinc-200 hover:bg-zinc-50 text-xs font-semibold text-slate-700 rounded-lg transition">Edit Profile</a>
+                <a href="{% url 'admin_panel:admin_manage_working_hours' doctor.pk %}" class="px-4 py-2 border border-zinc-200 hover:bg-zinc-50 text-xs font-semibold text-slate-700 rounded-lg transition">Working Hours</a>
+                <a href="{% url 'admin_panel:admin_manage_leaves' doctor.pk %}" class="px-4 py-2 border border-zinc-200 hover:bg-zinc-50 text-xs font-semibold text-slate-700 rounded-lg transition">Leaves</a>
+                <a href="{% url 'admin_panel:remove_doctor' doctor.pk %}" onclick="return confirm('Are you sure you want to permanently remove this doctor? This cancels future bookings and disables new availability slots.')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-xs font-semibold text-white rounded-lg transition">Remove Doctor</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="grid md:grid-cols-3 gap-8">
+        <!-- Professional summary -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200 space-y-4 shadow-sm h-fit">
+            <h3 class="text-sm font-bold font-outfit text-slate-900 uppercase tracking-wider border-b border-zinc-100 pb-2">Profile Details</h3>
+            <div class="space-y-3 text-xs text-slate-600 font-light">
+                <div><strong class="text-slate-800 font-semibold">Qualification:</strong> <span class="block mt-1 text-slate-900 font-medium">{{ doctor.doctor_profile.qualification|default:"Not specified" }}</span></div>
+                <div><strong class="text-slate-800 font-semibold">Username/Email:</strong> <span class="block mt-1 font-mono">{{ doctor.username }}</span></div>
+                <div><strong class="text-slate-800 font-semibold">Experience:</strong> <span class="block mt-1">{{ doctor.doctor_profile.experience_years }} Years</span></div>
+                <div><strong class="text-slate-800 font-semibold">Languages:</strong> <span class="block mt-1">{{ doctor.doctor_profile.languages|default:"Not specified" }}</span></div>
+                <div><strong class="text-slate-800 font-semibold">Average Rating:</strong> <span class="block mt-1 text-emerald-600 font-bold">{{ doctor.doctor_profile.average_rating }} ★ ({{ doctor.doctor_profile.total_reviews }} reviews)</span></div>
+            </div>
+        </div>
+
+        <!-- Documentation Files & Bio -->
+        <div class="bg-white p-6 rounded-2xl border border-zinc-200 md:col-span-2 space-y-6 shadow-sm">
+            <div class="space-y-2">
+                <h3 class="text-sm font-bold font-outfit text-slate-900 uppercase tracking-wider border-b border-zinc-100 pb-2">Biography</h3>
+                <p class="text-sm text-slate-600 leading-relaxed italic font-light">
+                    "{{ doctor.doctor_profile.bio|default:'No biography provided.' }}"
+                </p>
+            </div>
+
+            <!-- Documents -->
+            <div class="space-y-4 pt-2">
+                <h3 class="text-sm font-bold font-outfit text-slate-900 uppercase tracking-wider border-b border-zinc-100 pb-2">Credentials Attachments</h3>
+                <div class="grid sm:grid-cols-3 gap-4">
+                    <!-- Gov ID -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-zinc-200 text-center flex flex-col justify-between h-36">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Gov Photo ID</span>
+                        {% if doctor.doctor_profile.gov_id_file %}
+                            <div class="space-y-2">
+                                <a href="{{ doctor.doctor_profile.gov_id_file.url }}" target="_blank" class="inline-block text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">View File</a>
+                            </div>
+                        {% else %}
+                            <span class="text-xs text-rose-500 font-medium">Missing File</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Medical License -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-zinc-200 text-center flex flex-col justify-between h-36">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Medical License</span>
+                        {% if doctor.doctor_profile.medical_license_file %}
+                            <div class="space-y-2">
+                                <a href="{{ doctor.doctor_profile.medical_license_file.url }}" target="_blank" class="inline-block text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">View File</a>
+                            </div>
+                        {% else %}
+                            <span class="text-xs text-rose-500 font-medium">Missing File</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Degree -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-zinc-200 text-center flex flex-col justify-between h-36">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Degree Certificate</span>
+                        {% if doctor.doctor_profile.degree_certificate_file %}
+                            <div class="space-y-2">
+                                <a href="{{ doctor.doctor_profile.degree_certificate_file.url }}" target="_blank" class="inline-block text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">View File</a>
+                            </div>
+                        {% else %}
+                            <span class="text-xs text-rose-500 font-medium">Missing File</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment History -->
+    <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+        <h3 class="text-base font-bold font-outfit text-slate-900 border-b border-zinc-100 pb-2">Appointment History (Total: {{ appointments.count }})</h3>
+        {% if appointments %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-200 text-slate-400 font-semibold">
+                            <th class="py-3">Reference ID</th>
+                            <th class="py-3">Patient</th>
+                            <th class="py-3">Date</th>
+                            <th class="py-3">Time Range</th>
+                            <th class="py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 text-slate-700 font-light">
+                        {% for appt in appointments %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="py-3 font-semibold font-mono text-slate-800">{{ appt.reference_id }}</td>
+                                <td class="py-3">{{ appt.patient.get_full_name|default:appt.patient.email }}</td>
+                                <td class="py-3">{{ appt.slot.start_datetime|date:"Y-m-d" }}</td>
+                                <td class="py-3">{{ appt.slot.start_datetime|date:"H:i" }} - {{ appt.slot.end_datetime|date:"H:i" }}</td>
+                                <td class="py-3">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                                        {% if appt.slot.status == 'COMPLETED' %}bg-emerald-100 text-emerald-800
+                                        {% elif appt.slot.status == 'BOOKED' %}bg-blue-100 text-blue-800
+                                        {% elif appt.slot.status == 'CANCELLED' %}bg-zinc-100 text-zinc-600
+                                        {% else %}bg-rose-100 text-rose-800{% endif %}">
+                                        {{ appt.slot.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-xs text-slate-400 font-light py-4">No appointments recorded for this doctor.</p>
+        {% endif %}
+    </div>
+
+    <!-- Reviews Feedback -->
+    <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+        <h3 class="text-base font-bold font-outfit text-slate-900 border-b border-zinc-100 pb-2">Patient Feedback & Reviews</h3>
+        {% if reviews %}
+            <div class="space-y-4 divide-y divide-zinc-100">
+                {% for review in reviews %}
+                    <div class="pt-4 first:pt-0">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-xs text-slate-800">{{ review.patient.get_full_name|default:review.patient.email }}</span>
+                                <span class="text-xs text-amber-500 font-semibold">{{ review.rating }} ★</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono">{{ review.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 italic font-light mt-2 leading-relaxed">
+                            "{{ review.comment|default:"No comment provided." }}"
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-xs text-slate-400 font-light py-4">No patient reviews submitted yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

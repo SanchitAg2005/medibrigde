@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Configure Working Hours - {{ hospital_config.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 flex-grow">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs text-slate-500">
+        <a href="{% url 'doctors:dashboard' %}" class="hover:text-emerald-600 transition font-medium">Doctor Dashboard</a>
+        <span>&bull;</span>
+        <span class="text-slate-600 font-semibold">Configure Weekly Working Hours</span>
+    </div>
+
+    <!-- Header -->
+    <div class="border-b border-zinc-200 pb-6">
+        <h1 class="text-3xl font-extrabold font-outfit text-slate-900">Configure Weekly Schedule</h1>
+        <p class="text-sm text-slate-500">Specify your active work hours, slot durations, and buffer times. Appointment slots will be auto-generated for the next 14 days.</p>
+    </div>
+
+    <!-- Configuration Form -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="glass-card rounded-2xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-zinc-200 uppercase tracking-wider">
+                    <tr>
+                        <th class="p-4 w-12 text-center">Active</th>
+                        <th class="p-4 w-28">Day</th>
+                        <th class="p-4">Start Time</th>
+                        <th class="p-4">End Time</th>
+                        <th class="p-4 w-28">Slot Duration (Min)</th>
+                        <th class="p-4 w-28">Buffer (Min)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 text-slate-700">
+                    {% for d in days %}
+                        <tr class="hover:bg-slate-50 transition align-middle">
+                            <td class="p-4 text-center">
+                                <input type="checkbox" name="active_{{ d.day }}" id="active_{{ d.day }}" 
+                                       {% if d.is_active %}checked{% endif %}
+                                       class="w-4 h-4 rounded border-zinc-300 bg-white text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            </td>
+                            <td class="p-4 font-semibold text-slate-900">
+                                <label for="active_{{ d.day }}" class="cursor-pointer select-none">{{ d.name }}</label>
+                            </td>
+                            <td class="p-4">
+                                <input type="time" name="start_{{ d.day }}" value="{{ d.start_time }}" 
+                                       class="glass-input w-full max-w-[140px] px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
+                            </td>
+                            <td class="p-4">
+                                <input type="time" name="end_{{ d.day }}" value="{{ d.end_time }}" 
+                                       class="glass-input w-full max-w-[140px] px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
+                            </td>
+                            <td class="p-4">
+                                <input type="number" name="duration_{{ d.day }}" value="{{ d.slot_duration }}" min="5" max="180"
+                                       class="glass-input w-full px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
+                            </td>
+                            <td class="p-4">
+                                <input type="number" name="buffer_{{ d.day }}" value="{{ d.buffer_time }}" min="0" max="60"
+                                       class="glass-input w-full px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="flex items-center justify-end gap-3 pt-4">
+            <a href="{% url 'doctors:dashboard' %}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-zinc-200 text-xs font-semibold rounded-lg transition">
+                Cancel
+            </a>
+            <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-md shadow-emerald-600/25 glow-button">
+                Save Weekly Schedule
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
