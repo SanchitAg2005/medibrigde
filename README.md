@@ -1,354 +1,540 @@
-# MediBridge Medical Center
+# MediBridge
 
 [![Django Version](https://img.shields.io/badge/Django-5.2-emerald.svg)](https://www.djangoproject.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Orchestrated-blueviot.svg)](https://docs.docker.com/compose/)
+[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Orchestrated-blueviolet.svg)](https://docs.docker.com/compose/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Smart Hospital Management & Electronic Medical Records (EMR) System**
-
-MediBridge is a clinical-grade hospital portal designed to streamline patient scheduling, Electronic Medical Records (EMRs), clinical prescription pipelines, and administrative hospital operations. Built on a modular Django 5.2 architecture, the platform enforces transactional integrity and operational safety through database-level row locks, asynchronous worker dispatching, and a serverless email service.
+A Django-based hospital management system covering appointment scheduling, electronic medical records, doctor management, Google Calendar synchronization, and background email notifications.
 
 ---
 
-## 📖 Project Overview
+## Why
 
-The primary objective of **MediBridge** is to provide an intuitive, high-reliability platform that connects patients, doctors, and system administrators. Unlike legacy hospital portals, MediBridge prioritizes modern UX principles, absolute data consistency, and microservice segregation.
+Healthcare scheduling involves more than persisting a row in a database. A working system has to manage doctor availability, prevent double-bookings under concurrent requests, maintain patient records, send notifications, and synchronize with external calendars — all while keeping the booking transaction itself fast and reliable.
 
-Key engineering highlights include:
-* **Race-Condition Prevention**: row-level locking (`select_for_update`) protects calendar time slots during concurrent patient booking requests.
-* **Microservices Design**: email delivery runs on an isolated Serverless offline function, triggered asynchronously.
-* **Google Calendar Sync**: two-way OAuth2 synchronization maps clinic bookings directly to users' personal calendars.
+MediBridge was built to bring these workflows into a single Django application and work through the backend engineering concerns they create: how to protect a booking slot against race conditions, how to keep slow external API calls out of the request cycle, and how to wire together multiple services in a local development environment that actually mirrors the production dependencies.
 
 ---
 
-## 🛠️ Technology Stack
+## The Problem
 
-* **Backend Framework**: Python 3.11+ / Django 5.2 (ORM, session auth, validation, contexts)
-* **Database Layer**: PostgreSQL 15 (with local SQLite fallback for testing)
-* **CSS & Frontend Styling**: Custom premium light theme using Tailwind CSS and Outfit/Inter google typography
-* **Asynchronous Integration Worker**: Database-backed event task loop
-* **Serverless Functions**: Local Serverless Framework Offline environment emulating Node Lambdas
-* **Local SMTP Server**: Mailpit container with integrated web inspector dashboard
-* **Calendar Sync**: Google Cloud Calendar API (OAuth2 Client)
+A patient booking an appointment expects a straightforward flow:
 
----
+1. Find an approved doctor.
+2. View available slots generated from the doctor's working hours and leave schedule.
+3. Select a slot and confirm the booking.
+4. Receive a confirmation email.
+5. See the appointment appear in Google Calendar.
+6. Access the resulting medical record after the consultation.
 
-## 📋 Features
+The backend challenge is that step 3 must be safe under concurrency. Two patients can observe the same available slot and submit booking requests within milliseconds of each other. Without explicit protection, both requests can read the slot as available, both proceed, and the same slot is double-booked.
 
-### Authentication
-* **Role-Based Access Control (RBAC)**: Enforces strict separation of concerns for `PATIENT`, `DOCTOR`, and `ADMIN` groups.
-* **Registration Approvals**: Doctor signups start in a `PENDING` state and require administrative verification of documents.
-* **Operational Lifecycles**: Strict state management transitions: `PENDING` ➔ `APPROVED` ➔ `SUSPENDED` ➔ `REMOVED`.
-* **Collapsible Developer Panel**: Access coordinates for demo profiles are rendered in a hidden panel toggleable only when `DEBUG=True`.
-
-### Patient Portal
-* **Dedicated Booking Page**: Centered booking wizard located at `/patients/book-appointment/`.
-* **Doctor Directory**: Instant directories with typeahead autocomplete suggestions.
-* **Combinable Search Filters**: Filter doctors by Specialization, Average Rating, Availability (Today, Tomorrow, This Week), and Experience level.
-* **Interactive Booking Wizard**: Dynamic three-step scheduling (Choose Doctor, Select Date/Slot, Review Summary).
-* **Consultation Feedback**: 1–5 star rating forms and reviews linked to completed bookings.
-* **Reports Hub**: Upload, view, and download clinical laboratory reports (PDF/Image formats).
-
-### Doctor Dashboard
-* **Patient Queue**: Daily schedule chronological timeline tracking today's bookings.
-* **Practice Setup**: Custom slot intervals, durations, buffer times, and weekday hours.
-* **Clinical Leaves**: Request leave windows which automatically cancel overlapping bookings.
-* **EMR Form Panel**: Log symptoms, diagnoses, notes, and structured JSON prescriptions.
-* **Google Sync Panel**: Link and synchronize appointments directly onto personal Google Calendars.
-
-### Administrative Panel
-* **Clinician Verifications**: Audit doctor profiles (license documents, degrees) to approve, suspend, or reactivate accounts.
-* **Graceful Doctor Removal**: Soft-deletes doctors, deletes future slot timelines, cancels future bookings, and deletes synchronized Google Calendar events.
-* **Hospital Settings Panel**: Configure clinic name, contact info, and branding dynamically using a singleton model.
-* **System Health Monitor**: Live diagnostic board tracking DB, SMTP host, Google API secrets, and task backlog metrics.
-
-### Medical Records (EMR)
-* **Consultation Charts**: Symptoms, diagnoses, advice, and next check-up dates.
-* **Structured Prescriptions**: Medication details, dosages, frequencies, and durations stored in robust JSON fields.
-* **Lab Integrations**: Attach independent patient uploaded files directly to EMR logs during consults.
-
-### Google Calendar Sync
-* **Automatic Creation**: Syncs confirmed bookings directly to user calendars.
-* **Reschedules & Deletes**: Automatically updates or deletes Google Calendar events when bookings are canceled or modified.
-
-### Asynchronous Queue
-* **AsyncTask Engine**: Offloads SMTP email transmissions and Google API latencies to a background queue.
-* **Backoff Retries**: Automatic exponential backoffs protect against third-party network outages.
+The system also cannot call the Google Calendar API or email service synchronously inside the booking request — network latency and third-party failures would directly degrade booking response time.
 
 ---
 
-## 🔌 Prerequisites
+## How It Works
 
-Before running the application, ensure the following software is installed on your local machine:
-
-1. **Python 3.11+** (for local development or SQLite fallback testing)
-2. **Docker Desktop** (version 20+ with Docker Compose)
-3. **Git** (for repository version tracking)
-4. **Node.js (v18+) & npm** (required to run the Serverless Email Service local dev dependencies)
-5. **Google Cloud Console account** (with the Google Calendar API enabled for sync workflows)
-
----
-
-## ⚙️ Environment Variables
-
-The project uses a `.env` file located in the root directory. To configure your settings, copy the provided `.env.example` file and fill in your details:
-
-```bash
-cp .env.example .env
+```
+Patient / Doctor / Admin
+         │
+         ▼
+   Django Web Application
+         │
+    ┌────┴────────────────────┐
+    │                         │
+    ▼                         ▼
+PostgreSQL              AsyncTask Queue
+(booking transaction)   (database-backed)
+    │                         │
+    ▼                    Background Worker
+Appointment / EMR             │
+                    ┌─────────┴──────────┐
+                    ▼                    ▼
+            Google Calendar API    Email Service
+                                  (Serverless Offline)
+                                         │
+                                       SMTP
+                                      (Mailpit)
 ```
 
-| Key Name | Type | Description |
-| :--- | :--- | :--- |
-| `DEBUG` | Boolean | Enables Django development server details (`True` / `False`). |
-| `SECRET_KEY` | String | Django secret cryptographic key used for session signing. |
-| `ALLOWED_HOSTS` | List | Hostnames allowed to route to the Django application. |
-| `USE_SQLITE` | Boolean | Set to `True` to bypass PostgreSQL and run local tests on SQLite. |
-| `DB_NAME` | String | PostgreSQL database name (defaults to `hms_db`). |
-| `DB_USER` | String | PostgreSQL database user (defaults to `hms_user`). |
-| `DB_PASSWORD` | String | PostgreSQL secure database password. |
-| `DB_HOST` | String | Database host address (e.g. `db` in Docker, `localhost` locally). |
-| `DB_PORT` | Integer | Database connection port (defaults to `5432`). |
-| `GOOGLE_CLIENT_ID` | String | Google OAuth2 client identification credentials. |
-| `GOOGLE_CLIENT_SECRET`| String | Google OAuth2 client secret key. |
-| `GOOGLE_REDIRECT_URI`| String | Authorized callback URL: `http://localhost:8000/oauth/callback/`. |
-| `EMAIL_SERVICE_URL` | String | Local Serverless offline email handler API endpoint. |
-| `SMTP_HOST` | String | SMTP email host (e.g. `mailpit` in Docker). |
-| `SMTP_PORT` | Integer | SMTP email port (defaults to `1025`). |
-| `EMAIL_FROM` | String | Dispatched system email address (defaults to `noreply@hospital.local`). |
-
-*Note: Real secrets should NEVER be checked into source control. Placeholders are maintained inside the `.env.example` file.*
+The booking transaction uses `select_for_update()` inside `transaction.atomic()` to prevent concurrent double-bookings. External integrations — Google Calendar and email — are written to the `AsyncTask` queue and executed by a separate background worker, keeping the booking response time independent of third-party API latency.
 
 ---
 
-## ☁️ Google Calendar Setup
+## Concurrency Protection
 
-To configure two-way Google Calendar synchronization, follow these steps to retrieve credentials:
+This is the most important backend engineering decision in the project.
 
-1. **Create Google Cloud Project**: Go to [Google Cloud Console](https://console.cloud.google.com/) and create a new project.
-2. **Enable APIs**: Navigate to **API & Services > Library**, search for the **Google Calendar API**, and click **Enable**.
-3. **Configure OAuth Consent Screen**:
-   * Go to **OAuth Consent Screen**, select **External**, and input your support email and app name.
-   * Add the `.../auth/calendar.events` scopes if planning live sync trials.
-   * Add your Google accounts to the **Test Users** panel (required for OAuth testing).
-4. **Create Client Credentials**:
-   * Navigate to **Credentials > Create Credentials > OAuth Client ID**.
-   * Set Application Type to **Web Application**.
-   * Add **Authorized JavaScript Origins**: `http://localhost:8000`.
-   * Add **Authorized Redirect URIs**: `http://localhost:8000/oauth/callback/`.
-5. **Update Environment File**: Copy the generated **Client ID** and **Client Secret** into your `.env` file under `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+When a patient submits a booking request, the slot record is locked at the database row level before its status is checked:
 
----
-
-## 🚀 Running the Project
-
-### Option A: Standard Docker Build (Recommended)
-1. **Clone the project and enter directory**:
-   ```bash
-   git clone <repository_url>
-   cd <project_directory>
-   ```
-2. **Create environment configuration**:
-   ```bash
-   cp .env.example .env
-   # Add your Google Calendar client IDs and secrets into the .env file
-   ```
-3. **Build and spin up the Docker services**:
-   ```bash
-   docker compose up --build
-   ```
-4. **Run database migrations inside the web container**:
-   ```bash
-   docker compose exec web python hms/manage.py migrate
-   ```
-5. **Seed the database with mock records and user accounts**:
-   ```bash
-   docker compose exec web python hms/manage.py seed_data
-   ```
-6. **Open browser interfaces**:
-   * Main Portal: `http://localhost:8000/`
-   * Mailpit Inbox: `http://localhost:8025/`
-
----
-
-### Option B: Local Development Setup (SQLite Fallback)
-If you want to run the project outside of Docker using a local SQLite database file:
-1. **Activate virtual environment & install requirements**:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On macOS/Linux:
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-2. **Initialize Environment Variables**:
-   In your `.env` file, ensure `USE_SQLITE=True` is defined.
-3. **Migrate and Seed**:
-   ```bash
-   python hms/manage.py migrate
-   python hms/manage.py seed_data
-   ```
-4. **Start the Django Development Server**:
-   ```bash
-   python hms/manage.py runserver
-   ```
-5. **Launch Background Queue Worker**:
-   Open a separate terminal window and run:
-   ```bash
-   python hms/manage.py process_tasks
-   ```
-6. **Launch Serverless Offline Email Service**:
-   Open a separate terminal window, navigate to the `email-service` directory, and run:
-   ```bash
-   cd email-service
-   npm install
-   npx serverless offline
-   ```
-
----
-
-## 📦 Docker Services
-
-The `docker-compose.yml` configures 5 isolated services:
-
-* **`hms_db`** (`postgres:15-alpine`): Stores application models and audit records. Binds to port `5432`.
-* **`hms_web`** (`Django App`): Evaluates queries, handles user sessions, and renders HTML/Tailwind templates. Binds to port `8000`.
-* **`hms_worker`** (`Task Processor`): Polls the database queue to process asynchronous integrations (Google API calls, email dispatches). Runs `python hms/manage.py process_tasks`.
-* **`hms_email_service`** (`Serverless offline`): An isolated NodeJS container emulating AWS Lambda. Formats email templates and passes SMTP requests to Mailpit. Binds to port `3000`.
-* **`hms_mailpit`** (`axllent/mailpit`): Development SMTP server mapping port `1025`. Runs web inspector UI on port `8025` for email previewing.
-
----
-
-## 🔌 Default Ports Mapping
-
-| Service Name | Port | Description | URL |
-| :--- | :--- | :--- | :--- |
-| **Django Application** | `8000` | Main client frontend & administration panel | `http://localhost:8000/` |
-| **PostgreSQL Database**| `5432` | Relational transactional database | `localhost:5432` |
-| **Serverless Email API**| `3000` | NodeJS offline Lambda service endpoints | `http://localhost:3000/` |
-| **Mailpit SMTP Server** | `1025` | Port used by Django and Serverless to route emails | `localhost:1025` |
-| **Mailpit Web UI** | `8025` | Graphical web interface to inspect sent emails | `http://localhost:8025/` |
-
----
-
-## 💾 Database Schema & Configuration
-
-* **Production (PostgreSQL)**: Enforces relational constraints, UUID primary keys, and pessimistic locking queries during booking transactions.
-* **Testing Fallback (SQLite)**: Automatically selected if `USE_SQLITE=True` is defined. Useful for fast, environment-independent unit tests.
-
-To run the unit test suite under the SQLite environment:
-```bash
-$env:USE_SQLITE="True"
-python hms/manage.py test hms
-```
-
----
-
-## 🔍 System Architecture & Design Decisions
-
-### Modular Applications Separation
-To avoid monolithic file bloat, domain logic is isolated inside specialized app folders (`accounts`, `appointments`, `doctors`, `medical_records`, `calendar_sync`, `notifications`, `admin_panel`, `common`, `core`).
-
-### Concurrency Protection
-To block double-bookings under concurrent client requests, Django locks selected slots inside an atomic transaction:
 ```python
-slot = AvailabilitySlot.objects.select_for_update().get(id=slot_id)
+with transaction.atomic():
+    slot = AvailabilitySlot.objects.select_for_update().get(pk=slot_id)
+
+    if slot.status != 'AVAILABLE':
+        raise ValidationError("This slot is no longer available.")
+
+    slot.status = 'BOOKED'
+    slot.save()
 ```
-This forces database threads to block and execute sequentially, guaranteeing slot integrity.
 
-### Asynchronous Integrations
-Calling third-party APIs (Google Cloud APIs) or executing HTTP POSTs (Serverless email) directly inside the booking transaction block introduces latency and vulnerability to network drops. MediBridge maps transactions to a database-backed `AsyncTask` model. A background worker polls the tasks and executes integration calls in separate process queues, protecting client experience.
+The sequence under concurrent requests:
 
-### Soft-Delete Auditing
-Removing doctor profiles transitions their account status to `REMOVED` instead of physically deleting them. This preserves historical bookings, clinical prescriptions, EMR charts, audits, and ratings, maintaining regulatory medical compliance.
+1. Request A acquires the row lock.
+2. Request A confirms the slot is `AVAILABLE` and sets it to `BOOKED`.
+3. The transaction commits and the lock is released.
+4. Request B acquires the lock, reads `BOOKED`, and raises a validation error.
 
----
-
-## 🔑 Demo Access Credentials
-
-The database contains pre-configured credentials for quick evaluation:
-
-| Target Dashboard | Role / Persona | Username / Email | Password |
-| :--- | :--- | :--- | :--- |
-| **Admin Console** | System Administrator | `admin@medibridge.com` | `MediBridge@2024` |
-| **Admin Console (Alt)** | System Administrator | `demo_admin@hospital.local` | `hms_admin123` |
-| **Doctor Portal** | Cardiology Specialist | `doctor@medibridge.com` | `MediBridge@2024` |
-| **Doctor Portal (Alt)** | Dermatology Specialist | `demo_doctor@hospital.local` | `hms_doctor123` |
-| **Patient Portal** | Registered Patient | `patient@medibridge.com` | `MediBridge@2024` |
-| **Patient Portal (Alt)** | Registered Patient | `demo_patient@example.com` | `hms_patient123` |
-
-*To access Django's native administrative panel directly: `http://localhost:8000/admin/` (use `admin@medibridge.com`).*
-
-### Creating Custom Administrator Credentials
-If you prefer to define custom administrator credentials instead of using the pre-seeded default accounts:
-* **Docker Environment**:
-  ```bash
-  docker compose exec web python hms/manage.py createsuperuser
-  ```
-* **Local SQLite Environment**:
-  ```bash
-  python hms/manage.py createsuperuser
-  ```
-This interactive command prompts for a custom username, email address, and secure password to grant full system administrative access.
+This protects the appointment-slot state specifically. It does not imply broader system-wide consistency guarantees.
 
 ---
 
-## 🛠️ Assignment Requirements Mapping
+## Appointment Scheduling
 
-The following matrix maps primary project design criteria to the implemented code solutions:
+Doctors configure their availability through:
 
-| Required Specification | Implemented Feature in MediBridge | Implementation File |
-| :--- | :--- | :--- |
-| **Session Authentication** | Role-based signup, login, and registration dashboards | [accounts/views.py](file:///c:/Users/agarw/Downloads/Task1/hms/accounts/views.py) |
-| **Practice Slot Calculator** | Automated slot constructor checking doctor working hours, leaves, and buffers | [appointments/services.py](file:///c:/Users/agarw/Downloads/Task1/hms/appointments/services.py) |
-| **Transactional Booking Locks**| Pessimistic row-locking block checking slot reservation parameters | [appointments/services.py](file:///c:/Users/agarw/Downloads/Task1/hms/appointments/services.py) |
-| **Electronic Health Records** | EMR logs, consultation diaries, and structured prescriptions in JSON | [medical_records/models.py](file:///c:/Users/agarw/Downloads/Task1/hms/medical_records/models.py) |
-| **Google Calendar API Sync** | OAuth Callback links, calendar event builder, update, and delete dispatches | [calendar_sync/services.py](file:///c:/Users/agarw/Downloads/Task1/hms/calendar_sync/services.py) |
-| **Serverless Email Microservice**| Serverless NodeJS microservice templates dispatching SMTP mails | [email-service/handler.py](file:///c:/Users/agarw/Downloads/Task1/email-service/handler.py) |
-| **Background Task Processor** | Poll-based worker running tasks asynchronously with backoff retries | [common/tasks.py](file:///c:/Users/agarw/Downloads/Task1/hms/common/tasks.py) |
-| **System Diagnostics** | Health monitor checks testing PostgreSQL, Mailpit, Google APIs, and queue backlog | [admin_panel/views.py](file:///c:/Users/agarw/Downloads/Task1/hms/admin_panel/views.py) |
-| **Soft Doctor Deletion** | Suspension, Soft-deletion status, booking cancels, slot purging, calendars delete | [doctors/services.py](file:///c:/Users/agarw/Downloads/Task1/hms/doctors/services.py) |
+- **Working hours**: days of the week and start/end times per day
+- **Slot duration**: how long each appointment window runs
+- **Buffer time**: gap between consecutive appointments
+- **Leave periods**: date ranges during which no slots are generated
 
----
+The system generates `AvailabilitySlot` records from these rules, skipping any slots that fall within active leave periods.
 
-## ⚠️ Known Issues & Workarounds
+### Slot state machine
 
-* **Google OAuth Callback Port Limit**: The authorized Google Calendar Redirect URI in Google Cloud Console is bound to `http://localhost:8000/oauth/callback/`. Using a different port or host (e.g. `127.0.0.1`) will throw a redirect URL mismatch error.
-* **Serverless Service Requirement**: If the Serverless Offline service container is stopped, email tasks in the database queue will fail, log retries, and retry inside the backoff window. The container stack must remain fully active.
-* **Docker Dependencies**: Running the Postgres DB, Mailpit, and NodeJS lambda emulator requires Docker Desktop to be running. If running bare-metal, database configurations inside Django must be redirected to SQLite (`USE_SQLITE=True`).
+```
+AVAILABLE
+    │
+    ▼
+BOOKED ─────────────────► CANCELLED
+    │                      NO_SHOW
+    ▼
+IN_CONSULTATION ─────────► CANCELLED
+    │
+    ▼
+COMPLETED
+```
 
----
-
-## 🛡️ Production Notice
-
-This project was developed for **educational and evaluation purposes** as a university submission. Before deploying this portal to a production server, implement the following security and architecture enhancements:
-1. **Enforce HTTPS**: Route traffic through SSL/TLS certificates to encrypt session payloads and API requests.
-2. **Secrets Storage**: Manage environment secrets (`SECRET_KEY`, `GOOGLE_CLIENT_SECRET`) using dedicated secret managers (e.g. AWS Secrets Manager, HashiCorp Vault) rather than static `.env` text files.
-3. **Reverse Proxy (Nginx)**: Deploy a production proxy like Nginx or Traefik in front of Gunicorn/web containers to manage SSL termination and serve static assets.
-4. **SMTP Service**: Transition from Mailpit development SMTP capture to production APIs (e.g. Amazon SES, SendGrid).
-5. **Application Server (Gunicorn)**: Serve the Django web application via multi-worker production WSGI services rather than the development server `runserver`.
-6. **Centralized Log Manager**: Route clinical diagnostic audits and queue records to persistent telemetry services (e.g., Elasticsearch, CloudWatch).
+State transitions are validated before execution, and only the appropriate role (patient, doctor, or admin) can trigger each transition.
 
 ---
 
-## 🔬 AI Usage
+## Electronic Medical Records
 
-For transparency regarding AI-assisted development, engineering design, code refactoring, styling, and verification scripts, see the [ai-tool-usage-log/](file:///c:/Users/agarw/Downloads/Task1/ai-tool-usage-log/usage_notes.md) directory.
+After a consultation is marked complete, the doctor creates a medical record associated with the booking. Records store:
 
----
+- Diagnosis
+- Symptoms
+- Consultation notes
+- Prescriptions (structured as JSON — medication, dosage, frequency, duration)
+- Follow-up date
 
-## 🚀 Future Improvements
-
-* **Video Consultation**: Embed tele-health capabilities using WebRTC integrations.
-* **SMS Notifications**: Connect Twilio SMS gateways to trigger text alerts for scheduled appointments.
-* **Payment Gateways**: Incorporate Stripe checkout integrations inside the confirmation step of the booking wizard.
-* **Multi-Hospital Support**: Support administrative multi-clinic directories.
-* **Cloud Deployment**: Deployment scripts targeting AWS ECS or Kubernetes clusters.
-* **Clinical Decision Support**: AI-assisted clinical diagnosis verification matching EMR inputs against standard medical taxonomies.
+Patients can also upload medical reports independently — blood tests, MRI, CT scans, X-rays, prescriptions, and other document types — which are stored and viewable from the patient dashboard.
 
 ---
 
-## 📄 License
+## User Roles
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+### Patient
+
+- Browse approved doctors with filters (specialization, rating, availability)
+- Book appointments through a three-step wizard
+- Cancel bookings
+- Access medical records and uploaded reports
+- Submit ratings and reviews after completed consultations
+- Connect Google Calendar for appointment synchronization
+
+### Doctor
+
+- Manage profile and specialization
+- Configure working hours, slot duration, and buffer time
+- Request leave periods (automatically cancels conflicting bookings)
+- View daily appointment queue
+- Record consultation details and prescriptions
+- Connect Google Calendar
+
+### Administrator
+
+- Review and approve/reject doctor registration requests
+- Suspend or soft-delete doctor accounts
+- Manage hospital configuration (name, contact, branding)
+- Monitor system health: database, SMTP, Google API credentials, task queue backlog
+
+Doctor accounts follow a status lifecycle: `PENDING → APPROVED → SUSPENDED → REMOVED`. Soft-deletion preserves historical bookings and medical records rather than hard-deleting associated data.
+
+---
+
+## Background Task System
+
+MediBridge uses a database-backed `AsyncTask` queue rather than Celery, Redis, or RabbitMQ. This keeps the infrastructure footprint light — the task queue is just a database table, and the worker is a Django management command.
+
+Supported task types:
+
+| Task Type | Action |
+|---|---|
+| `SEND_EMAIL` | Dispatch an email via the Serverless email service |
+| `CREATE_CALENDAR` | Create a Google Calendar event |
+| `UPDATE_CALENDAR` | Update an existing Google Calendar event |
+| `DELETE_CALENDAR` | Delete a Google Calendar event |
+
+**Worker behavior:**
+
+1. On startup, recovers tasks stuck in `RUNNING` state (from a previous crash)
+2. Polls for `PENDING` tasks
+3. Executes the appropriate integration
+4. On failure: increments retry count, applies exponential backoff
+5. After max retries: marks the task `FAILED` and logs to the audit system
+
+**Backoff formula:**
+
+```
+delay = 5 × 2^(retry_count − 1) seconds
+```
+
+This means the first retry waits 5 seconds, the second 10, the third 20, and so on.
+
+---
+
+## Google Calendar Integration
+
+Patients and doctors can connect their Google accounts using OAuth 2.0 with PKCE. The flow:
+
+1. User initiates the connection from their dashboard
+2. Redirected to Google's authorization endpoint
+3. Google redirects back to `/oauth/callback/` with an authorization code
+4. The application exchanges the code for access and refresh tokens
+5. Tokens are stored in `GoogleOAuthToken`, with expiry tracked per user
+6. On subsequent API calls, the token is refreshed automatically if expired
+
+Calendar operations (create, update, delete) are dispatched as `AsyncTask` records from the booking transaction. The background worker executes the actual Google Calendar API call separately from the booking request — so a Google API failure or latency spike does not affect the booking confirmation.
+
+---
+
+## Email Service
+
+MediBridge includes a Serverless Offline email service as a separate container. The background worker sends structured email metadata (recipient, template name, context) to this service via HTTP POST. The service selects the appropriate HTML template, constructs the message, and delivers it through SMTP.
+
+Mailpit captures all outbound SMTP traffic locally and provides a web UI for email inspection at `http://localhost:8025/`.
+
+Supported notification scenarios include:
+
+- Welcome email on patient/doctor signup
+- Booking confirmation
+- Doctor approval / rejection notification
+- Booking cancellation notifications
+
+> Mailpit is a development tool. Production deployment requires a real SMTP provider (e.g. Amazon SES, SendGrid).
+
+---
+
+## Architecture
+
+```mermaid
+graph TD
+    User([Browser]) --> Django[Django Web Application]
+
+    Django --> DB[(PostgreSQL)]
+    Django --> Queue[(AsyncTask Queue)]
+
+    Worker[Background Worker] --> Queue
+    Worker --> GCal[Google Calendar API]
+    Worker --> EmailSvc[Serverless Email Service]
+
+    EmailSvc --> SMTP[SMTP / Mailpit]
+
+    Django --> Booking[Appointment System]
+    Django --> EMR[Medical Records]
+
+    Booking --> DB
+    EMR --> DB
+```
+
+---
+
+## Application Structure
+
+The project uses domain-separated Django applications:
+
+| App | Responsibility |
+|---|---|
+| `core` | Base settings, URL routing, startup configuration |
+| `accounts` | Authentication, registration, role management, user lifecycle |
+| `patients` | Patient dashboard, doctor search, report uploads |
+| `doctors` | Doctor profile, working hours, leave management, slot generation |
+| `appointments` | Slot state machine, booking logic, concurrency control |
+| `medical_records` | EMR creation, prescription storage, lab report management |
+| `calendar_sync` | Google OAuth flow, token management, Calendar API integration |
+| `notifications` | In-app notifications and notification center |
+| `admin_panel` | Admin dashboard, doctor verification, system health monitor |
+| `common` | Shared utilities: AsyncTask model, AuditLog, background worker |
+
+---
+
+## Data Model
+
+```
+CustomUser
+ ├── DoctorProfile
+ │    ├── WorkingHours
+ │    ├── DoctorLeave
+ │    └── AvailabilitySlot ──► Booking
+ │                                 ├── Review
+ │                                 └── MedicalRecord
+ │                                          └── MedicalReport
+ │
+ └── GoogleOAuthToken
+
+AsyncTask        (background job queue)
+AuditLog         (system event history)
+HospitalConfig   (singleton — name, contact, branding)
+```
+
+`HospitalConfig` is a singleton model, meaning the application is designed for a single-hospital deployment rather than a multi-tenant SaaS scenario.
+
+---
+
+## Security
+
+- Django session-based authentication
+- Role-based authorization enforced per view (patient / doctor / admin)
+- CSRF protection on all state-changing operations
+- Password hashing via Django's default PBKDF2 hasher
+- Appointment booking protected by row-level locking inside an atomic transaction
+- Doctor approval workflow — only approved doctors are visible to patients
+- Soft-deletion of doctor accounts preserves historical records
+- Audit logging for significant system events
+- Secrets managed through `.env` (not committed to version control)
+
+> No claim is made regarding HIPAA, GDPR, or any regulatory compliance standard.
+
+---
+
+## Docker Services
+
+The Docker Compose file defines five services:
+
+| Container | Purpose | Ports |
+|---|---|---|
+| `hms_db` | PostgreSQL 15 database | `5432` |
+| `hms_web` | Django web application | `8000` |
+| `hms_worker` | Background task processor (`process_tasks`) | — |
+| `hms_email_service` | Serverless Offline email service | `3000` |
+| `hms_mailpit` | SMTP capture + web inbox viewer | `1025` / `8025` |
+
+---
+
+## Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Python 3.11+ | Core backend language |
+| Django 5.2 | Web framework, ORM, session auth, CSRF |
+| PostgreSQL 15 | Relational database |
+| Docker Compose | Local multi-service orchestration |
+| Google Calendar API | Calendar event management |
+| OAuth 2.0 + PKCE | Calendar authorization flow |
+| Serverless Offline | Local email service emulation (Node.js) |
+| Mailpit | Local SMTP capture and email inspection |
+| Tailwind CSS | Frontend styling |
+
+---
+
+## Setup
+
+### Prerequisites
+
+- Docker Desktop (v20+)
+- Git
+- A Google Cloud project with the Calendar API enabled (for calendar sync)
+- Node.js v18+ (only required for the local SQLite development path)
+
+### Option A — Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone <repository_url>
+cd <project_directory>
+
+# Configure environment
+cp .env.example .env
+# Fill in GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+
+# Build and start all services
+docker compose up --build
+
+# Run migrations
+docker compose exec web python hms/manage.py migrate
+
+# Seed demo data
+docker compose exec web python hms/manage.py seed_data
+```
+
+Access the application at `http://localhost:8000/`.
+View captured emails at `http://localhost:8025/`.
+
+### Option B — Local SQLite (No Docker)
+
+```bash
+python -m venv venv
+source venv/bin/activate       # macOS/Linux
+# .\venv\Scripts\activate      # Windows
+
+pip install -r requirements.txt
+```
+
+Set `USE_SQLITE=True` in your `.env` file, then:
+
+```bash
+python hms/manage.py migrate
+python hms/manage.py seed_data
+python hms/manage.py runserver
+```
+
+In separate terminals:
+
+```bash
+# Background worker
+python hms/manage.py process_tasks
+
+# Email service
+cd email-service && npm install && npx serverless offline
+```
+
+### Environment variables
+
+| Variable | Description |
+|---|---|
+| `DEBUG` | Django debug mode (`True` / `False`) |
+| `SECRET_KEY` | Django secret key |
+| `ALLOWED_HOSTS` | Comma-separated allowed hostnames |
+| `USE_SQLITE` | `True` to use SQLite instead of PostgreSQL |
+| `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` | PostgreSQL connection settings |
+| `GOOGLE_CLIENT_ID` | Google OAuth2 client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret |
+| `GOOGLE_REDIRECT_URI` | OAuth callback URL (`http://localhost:8000/oauth/callback/`) |
+| `EMAIL_SERVICE_URL` | Serverless email service endpoint |
+| `SMTP_HOST` / `SMTP_PORT` | SMTP settings (Mailpit in Docker) |
+| `EMAIL_FROM` | Sender address for outbound notifications |
+
+---
+
+## Google Calendar Setup
+
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/).
+2. Enable the **Google Calendar API**.
+3. Configure an OAuth Consent Screen (External) — add your account as a test user.
+4. Create **OAuth 2.0 Client Credentials** (Web Application type).
+   - Authorized JavaScript origin: `http://localhost:8000`
+   - Authorized redirect URI: `http://localhost:8000/oauth/callback/`
+5. Copy the **Client ID** and **Client Secret** into your `.env` file.
+
+---
+
+## Demo Credentials
+
+The `seed_data` command creates the following accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@medibridge.com` | `MediBridge@2024` |
+| Doctor | `doctor@medibridge.com` | `MediBridge@2024` |
+| Patient | `patient@medibridge.com` | `MediBridge@2024` |
+
+Django admin panel: `http://localhost:8000/admin/` (use the admin account above).
+
+---
+
+## Testing
+
+The project includes 40 unit tests covering:
+
+- Slot generation logic (working hours, leave overlap, buffer time)
+- Booking state machine transitions
+- Concurrent booking protection (`select_for_update` behavior)
+- AsyncTask retry and backoff behavior
+- Google OAuth redirect flow
+- Email task dispatch
+
+### Running tests
+
+```bash
+# SQLite — fast, no Docker required
+USE_SQLITE=True python hms/manage.py test hms
+
+# Windows PowerShell
+$env:USE_SQLITE="True"; python hms/manage.py test hms
+```
+
+---
+
+## Current Status
+
+### Implemented
+
+- Role-based authentication (Patient / Doctor / Admin)
+- Doctor approval workflow
+- Doctor working hours, leave, and slot generation
+- Transactional appointment booking with pessimistic row locking
+- Full appointment state machine (AVAILABLE → BOOKED → IN_CONSULTATION → COMPLETED / CANCELLED / NO_SHOW)
+- Electronic medical records (diagnosis, symptoms, prescriptions, follow-up dates)
+- Patient medical report uploads
+- Patient reviews and ratings
+- Google OAuth 2.0 + PKCE connection flow
+- Google Calendar event creation, update, and deletion
+- Database-backed `AsyncTask` queue
+- Background worker with exponential backoff retry
+- Serverless Offline email service
+- Mailpit local SMTP environment
+- Admin system health monitor
+- Audit logging
+- Hospital configuration (singleton)
+- Docker Compose multi-service environment
+- SQLite fallback for local testing
+
+### Known limitations
+
+- **Single-hospital only**: `HospitalConfig` is a singleton — multi-tenant / multi-clinic support is not implemented.
+- **Google OAuth callback is localhost-bound**: The authorized redirect URI must match `http://localhost:8000/oauth/callback/` exactly. A different port or `127.0.0.1` will fail.
+- **Email service dependency**: If the `hms_email_service` container is stopped, email tasks will fail, retry with backoff, and eventually be marked failed. The full stack must be running for email delivery.
+- **Development SMTP only**: Mailpit captures email locally. Production deployment requires a real SMTP provider.
+- **Development server**: The current setup uses Django's `runserver`. Production would require Gunicorn behind a reverse proxy.
+
+---
+
+## Engineering Decisions
+
+### Database-backed task queue instead of Celery
+
+Introducing Celery requires a message broker (Redis, RabbitMQ) as an additional infrastructure dependency. For this project, a lightweight `AsyncTask` database table — polled by a management command worker — achieves the same decoupling without additional services. It also makes the task state directly inspectable via the admin panel and audit log.
+
+The tradeoff is throughput: a database-polled queue will not scale to thousands of concurrent tasks per second. For a hospital scheduling system with this volume, that tradeoff is acceptable.
+
+### Pessimistic locking (`select_for_update`)
+
+Optimistic concurrency control (check-then-update without a lock) requires retry logic at the application layer and is harder to reason about correctly. Pessimistic locking with `select_for_update()` is simpler, applies directly at the database level, and guarantees that only one transaction can modify a slot at a time. The performance cost is acceptable at typical appointment booking request rates.
+
+### Decoupled email service
+
+Generating an email and connecting to SMTP inside the booking view would couple the booking transaction to SMTP availability. A network timeout or SMTP error would make the booking appear to fail from the patient's perspective. By dispatching email as an `AsyncTask`, the booking transaction completes independently and the email is delivered whenever the worker processes it.
+
+---
+
+## AI Usage
+
+This project was developed with AI-assisted tooling (Gemini via Antigravity) for scaffolding, code generation, and review. The following were designed and validated manually:
+
+- Concurrency protection strategy and `select_for_update()` implementation
+- AsyncTask worker backoff and retry logic
+- OAuth 2.0 token lifecycle and refresh handling
+- State machine transition rules
+- Test case structure and mock patterns
+
+See `ai-tool-usage-log/` for a detailed breakdown.
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
